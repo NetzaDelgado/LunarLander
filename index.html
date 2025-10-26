@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lunar Lander</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #0F0;
+        }
+        canvas {
+            background-color: #0a0a1a;
+            display: block;
+        }
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #0F0;
+            color: #0F0;
+            min-width: 250px;
+        }
+        .info-panel h2 {
+            margin-top: 0;
+            font-size: 1.2em;
+            border-bottom: 1px solid #0F0;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .info-panel p {
+            margin: 5px 0;
+        }
+        .message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 20, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #0F0;
+            text-align: center;
+            font-size: 2em;
+            display: none; /* Oculto por defecto */
+        }
+        .message-box p {
+            margin: 0;
+        }
+        .message-box span {
+            font-size: 0.6em;
+            display: block;
+            margin-top: 15px;
+            color: #8F8;
+        }
+        .fuel-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #333;
+            border: 1px solid #0F0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .fuel-bar {
+            height: 100%;
+            background-color: #0F0;
+            width: 100%;
+            transition: width 0.2s ease-out;
+        }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #999;
+            font-size: 0.9em;
+            background: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body class="bg-black flex items-center justify-center h-screen">
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="infoPanel" class="info-panel">
+        <h2>TELEMETRÍA</h2>
+        <p>Velocidad Horizontal: <span id="hSpeed">0.00</span> m/s</p>
+        <p>Velocidad Vertical: <span id="vSpeed">0.00</span> m/s</p>
+        <p>Altitud: <span id="altitude">0</span> m</p>
+        <p>Ángulo: <span id="angle">0</span>°</p>
+        <p>Combustible:</p>
+        <div class="fuel-bar-container">
+            <div id="fuelBar" class="fuel-bar"></div>
+        </div>
+    </div>
+    
+    <div id="messageBox" class="message-box">
+        <p id="messageText"></p>
+        <span id="subMessageText"></span>
+    </div>
+
+    <div class="controls">
+        Usa las flechas: [↑] para propulsión, [←] [→] para rotar. [Espacio] para quemar combustible. [R] para reiniciar.
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const hSpeedEl = document.getElementById('hSpeed');
+        const vSpeedEl = document.getElementById('vSpeed');
+        const altitudeEl = document.getElementById('altitude');
+        const angleEl = document.getElementById('angle');
+        const fuelBarEl = document.getElementById('fuelBar');
+        const messageBoxEl = document.getElementById('messageBox');
+        const messageTextEl = document.getElementById('messageText');
+        const subMessageTextEl = document.getElementById('subMessageText');
+
+        let gameWidth, gameHeight;
+
+        // Game state
+        let lander;
+        let gravity = 0.0005;
+        let thrustPower = 0.0015;
+        let rotationSpeed = 0.05;
+        let keys = {};
+        let terrain = [];
+        let landingPad = {};
+        let particles = [];
+        let gameOver = false;
+        
+        const MAX_LANDING_VSPEED = 0.4;
+        const MAX_LANDING_HSPEED = 0.4;
+        const MAX_LANDING_ANGLE = 5; // degrees
+
+        // Lander class
+        class Lander {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 20;
+                this.height = 20;
+                this.vx = 0.5; // Initial horizontal velocity
+                this.vy = 0;
+                this.angle = 0; // in radians
+                this.fuel = 2000; 
+                this.crashed = false;
+                this.landed = false;
+                this.thrusting = false;
+                this.burningFuel = false;
+            }
+
+            rotate(direction) {
+                if (this.fuel > 0) {
+                    this.angle += rotationSpeed * direction;
+                    this.fuel -= 0.1;
+                }
+            }
+
+            applyThrust() {
+                if (this.fuel > 0) {
+                    this.thrusting = true;
+                    // Calculate thrust vector based on angle
+                    this.vx += Math.sin(this.angle) * thrustPower;
+                    this.vy -= Math.cos(this.angle) * thrustPower;
+                    this.fuel -= 1;
+                    if (this.fuel < 0) this.fuel = 0;
+                } else {
+                    this.thrusting = false;
+                }
+            }
+
+            burnFuel() {
+                if (this.fuel > 0) {
+                    this.burningFuel = true;
+                    this.fuel -= 5; // Quema combustible rápidamente
+                    if (this.fuel < 0) this.fuel = 0;
+                } else {
+                    this.burningFuel = false;
+                }
+            }
+
+            update() {
+                if (this.crashed || this.landed) return;
+                
+                this.vy += gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+
+            draw() {
+                if (this.crashed) return;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle);
+                ctx.beginPath();
+                
+                // Lander Body
+                ctx.moveTo(0, -this.height / 2);
+                ctx.lineTo(-this.width / 2, this.height / 2);
+                ctx.lineTo(this.width / 2, this.height / 2);
+                ctx.closePath();
+                ctx.fillStyle = '#ccc';
+                ctx.fill();
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Window
+                ctx.beginPath();
+                ctx.arc(0, -5, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#77aaff';
+                ctx.fill();
+
+                // Thrust flame
+                if (this.thrusting) {
+                    const flameLength = this.height / 2 + Math.random() * 20 + 10;
+                    // Outer flame (orange/red)
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width / 4, this.height / 2);
+                    ctx.lineTo(this.width / 4, this.height / 2);
+                    ctx.lineTo(0, flameLength);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(255, 180, 0, 0.8)`;
+                    ctx.fill();
+
+                    // Inner flame (yellow/white)
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width / 8, this.height / 2);
+                    ctx.lineTo(this.width / 8, this.height / 2);
+                    ctx.lineTo(0, flameLength * 0.7); // Shorter inner flame
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(255, 255, 200, 0.95)`;
+                    ctx.fill();
+                }
+
+                // Fuel burn flame (lateral)
+                if (this.burningFuel) {
+                    ctx.beginPath();
+                    // Flame coming out the side
+                    ctx.moveTo(this.width / 2, 0);
+                    ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, -5);
+                    ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, 5);
+                    ctx.closePath();
+                    ctx.fillStyle = `rgba(255, 120, 0, 0.8)`;
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Particle for explosion
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = Math.random() * 60 + 40; // frames
+                this.radius = Math.random() * 3 + 1;
+                this.color = ['#ffcc00', '#ff9900', '#ff6600', '#ff3300', '#cccccc'][Math.floor(Math.random() * 5)];
+            }
+            
+            update() {
+                this.vy += gravity * 2; // Particles are also affected by gravity
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life / 60;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 100; i++) {
+                particles.push(new Particle(x, y));
+            }
+        }
+        
+        function handleInput() {
+            if (gameOver) return;
+
+            if (keys['ArrowLeft']) {
+                lander.rotate(-1);
+            }
+            if (keys['ArrowRight']) {
+                lander.rotate(1);
+            }
+            if (keys['ArrowUp']) {
+                lander.applyThrust();
+            }
+            if (keys[' ']) { // Barra espaciadora
+                lander.burnFuel();
+            }
+        }
+
+        function generateTerrain() {
+            terrain = [];
+            const roughness = 0.5;
+            let y = gameHeight * (2/3);
+            terrain.push({ x: 0, y: y });
+
+            const segmentCount = 100;
+            const segmentWidth = gameWidth / segmentCount;
+
+            // Find a flat spot for the landing pad
+            const padIndex = Math.floor(Math.random() * (segmentCount - 14)) + 5; 
+            
+            for (let i = 1; i <= segmentCount; i++) {
+                if (i >= padIndex && i <= padIndex + 8) { 
+                    // Flat area for landing pad
+                    if (i === padIndex) {
+                        landingPad.x = terrain[terrain.length - 1].x;
+                        landingPad.y = y;
+                        landingPad.width = segmentWidth * 8; 
+                    }
+                } else {
+                    // Introduce craters
+                    if (Math.random() < 0.05) { // 5% chance to start a crater
+                        const craterDepth = Math.random() * 40 + 20; // Depth between 20-60
+                        const craterWidth = Math.random() * 5 + 3; // Width in segments (3-8 segments wide)
+                        for (let j = 0; j < craterWidth; j++) {
+                            if (i + j < segmentCount) {
+                                let craterY = y + Math.sin(j / craterWidth * Math.PI) * craterDepth;
+                                // Clamp terrain height
+                                if (craterY > gameHeight - 50) craterY = gameHeight - 50;
+                                if (craterY < gameHeight / 2) craterY = gameHeight / 2;
+                                terrain.push({ x: (i + j) * segmentWidth, y: craterY });
+                            }
+                        }
+                        i += craterWidth - 1; // Skip ahead after creating crater
+                        y = terrain[terrain.length - 1].y; // Actualizar 'y' al final del cráter
+                        continue; // <-- ESTA ES LA CORRECCIÓN: Saltar el push de terreno principal
+                    } else {
+                        y += (Math.random() - 0.5) * segmentWidth * roughness;
+                    }
+                }
+                 // Clamp terrain height
+                if (y > gameHeight - 50) y = gameHeight - 50;
+                if (y < gameHeight / 2) y = gameHeight / 2;
+
+                if (i < segmentCount) { // Ensure we don't push extra points if crater generation went past boundary
+                    terrain.push({ x: i * segmentWidth, y: y });
+                }
+            }
+            // Ensure the last point reaches the edge if the loop ended early due to crater generation
+            if (terrain[terrain.length - 1].x < gameWidth) {
+                terrain.push({ x: gameWidth, y: terrain[terrain.length - 1].y });
+            }
+        }
+
+        function checkCollisions() {
+            if (lander.crashed || lander.landed) return;
+            
+            // Basic screen bounds check
+            if (lander.x < 0 || lander.x > gameWidth) {
+                lander.vx = -lander.vx; // Bounce off sides
+            }
+
+            const landerPoints = [
+                { x: lander.x - lander.width / 2, y: lander.y + lander.height / 2 },
+                { x: lander.x + lander.width / 2, y: lander.y + lander.height / 2 },
+            ];
+            
+            for (let i = 0; i < terrain.length - 1; i++) {
+                const p1 = terrain[i];
+                const p2 = terrain[i + 1];
+
+                // Simple collision: check if lander bottom points are below the terrain line segment
+                for (const point of landerPoints) {
+                    if (point.x >= p1.x && point.x <= p2.x) {
+                        const terrainY = p1.y + (p2.y - p1.y) * ((point.x - p1.x) / (p2.x - p1.x));
+                        if (point.y >= terrainY) {
+                            handleCollision(point.x > landingPad.x && point.x < landingPad.x + landingPad.width);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        function handleCollision(onPad) {
+            gameOver = true;
+            const angleDeg = Math.abs(lander.angle * 180 / Math.PI);
+
+            if (onPad && lander.vy < MAX_LANDING_VSPEED && Math.abs(lander.vx) < MAX_LANDING_HSPEED && angleDeg < MAX_LANDING_ANGLE) {
+                lander.landed = true;
+                lander.vy = 0;
+                lander.vx = 0;
+                lander.angle = 0;
+                showMessage('¡ATERRIZAJE EXITOSO!', `Velocidad vertical final: ${lander.vy.toFixed(2)} m/s`, '#0F0');
+            } else {
+                lander.crashed = true;
+                createExplosion(lander.x, lander.y);
+                showMessage('¡HAS CHOCADO!', 'Demasiado rápido o fuera de la plataforma', '#F00');
+            }
+             subMessageTextEl.innerHTML += '<br><span>Presiona [R] para volver a intentarlo</span>';
+        }
+
+        function showMessage(text, subtext, color) {
+            messageTextEl.textContent = text;
+            messageTextEl.style.color = color;
+            subMessageTextEl.textContent = subtext;
+            messageBoxEl.style.display = 'block';
+        }
+
+        function draw() {
+            // Clear canvas
+            ctx.clearRect(0, 0, gameWidth, gameHeight);
+            
+            // Draw Stars
+            drawStars();
+
+            // Draw terrain
+            ctx.beginPath();
+            ctx.moveTo(terrain[0].x, terrain[0].y);
+            for (let i = 1; i < terrain.length; i++) {
+                ctx.lineTo(terrain[i].x, terrain[i].y);
+            }
+            ctx.lineTo(gameWidth, gameHeight);
+            ctx.lineTo(0, gameHeight);
+            ctx.closePath();
+            ctx.fillStyle = '#666';
+            ctx.fill();
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw landing pad
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(landingPad.x, landingPad.y - 5, landingPad.width, 5);
+
+            // Draw particles
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                if (p.life <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            // Draw lander
+            lander.draw();
+        }
+
+        let stars = [];
+        function createStars() {
+            stars = [];
+            for(let i=0; i<200; i++) {
+                stars.push({
+                    x: Math.random() * gameWidth,
+                    y: Math.random() * gameHeight,
+                    radius: Math.random() * 1.5,
+                    alpha: Math.random()
+                });
+            }
+        }
+
+        function drawStars() {
+            stars.forEach(star => {
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
+                ctx.fill();
+            });
+        }
+        
+        function updateUI() {
+            hSpeedEl.textContent = (lander.vx * 10).toFixed(2);
+            vSpeedEl.textContent = (lander.vy * 10).toFixed(2);
+            
+            let lowestTerrainY = gameHeight;
+            for (let i = 0; i < terrain.length - 1; i++) {
+                const p1 = terrain[i];
+                const p2 = terrain[i + 1];
+                 if (lander.x >= p1.x && lander.x <= p2.x) {
+                    lowestTerrainY = p1.y + (p2.y - p1.y) * ((lander.x - p1.x) / (p2.x - p1.x));
+                    break;
+                }
+            }
+
+            altitudeEl.textContent = Math.max(0, (lowestTerrainY - lander.y - lander.height/2)).toFixed(0);
+            angleEl.textContent = ((lander.angle * 180 / Math.PI) % 360).toFixed(0);
+            
+            const fuelPercent = (lander.fuel / 2000) * 100; 
+            fuelBarEl.style.width = `${fuelPercent}%`;
+            if (fuelPercent < 25) {
+                fuelBarEl.style.backgroundColor = '#f00';
+            } else if (fuelPercent < 50) {
+                 fuelBarEl.style.backgroundColor = '#ff0';
+            } else {
+                 fuelBarEl.style.backgroundColor = '#0f0';
+            }
+        }
+        
+        function gameLoop() {
+            // Reiniciar el estado de los propulsores en cada fotograma
+            if (lander) {
+                lander.thrusting = false;
+                lander.burningFuel = false;
+            }
+
+            handleInput();
+            lander.update();
+            checkCollisions();
+            draw();
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function reset() {
+            gameWidth = window.innerWidth;
+            gameHeight = window.innerHeight;
+            canvas.width = gameWidth;
+            canvas.height = gameHeight;
+
+            generateTerrain();
+            createStars();
+            lander = new Lander(gameWidth / 2, 80);
+            particles = [];
+            gameOver = false;
+            
+            messageBoxEl.style.display = 'none';
+
+            keys = {};
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                reset();
+            } else {
+                keys[e.key] = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        window.addEventListener('resize', reset);
+
+        // Start the game
+        reset();
+        gameLoop();
+    </script>
+</body>
+</html>
+
+
