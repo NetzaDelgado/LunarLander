@@ -141,6 +141,27 @@
         let particles = [];
         let gameOver = false;
         
+        // --- Música de fondo ---
+        let musicStarted = false;
+        const bgMusic = new Audio('https://archive.org/download/mta_20240824/04%20-%20Ashes%20To%20Ashes%20%2812-Minute%20Disco%20Version%29.mp3');
+        bgMusic.loop = true;
+
+        function tryStartMusic() {
+            if (!musicStarted) {
+                // play() devuelve una promesa
+                bgMusic.play().then(() => {
+                    // Si tiene éxito, marcamos que ya inició
+                    musicStarted = true;
+                }).catch(error => {
+                    // Si falla (porque el navegador lo bloqueó), no hacemos nada.
+                    // musicStarted seguirá siendo 'false' y lo intentaremos
+                    // en la próxima interacción.
+                    console.log("Esperando interacción del usuario para iniciar la música...");
+                });
+            }
+        }
+        // ---------------------
+        
         const MAX_LANDING_VSPEED = 0.4;
         const MAX_LANDING_HSPEED = 0.4;
         const MAX_LANDING_ANGLE = 5; // degrees
@@ -550,6 +571,9 @@
         }
 
         window.addEventListener('keydown', (e) => {
+            // Inicia la música con la primera interacción del usuario
+            tryStartMusic();
+
             if (e.key === 'r' || e.key === 'R') {
                 reset();
             } else {
@@ -561,6 +585,14 @@
             keys[e.key] = false;
         });
 
+        // --- NUEVO LISTENER ---
+        // Agregamos un listener para 'mousedown' (clic) como otra forma
+        // de iniciar la música si la tecla falla.
+        window.addEventListener('mousedown', () => {
+            tryStartMusic();
+        });
+        // ---------------------
+
         window.addEventListener('resize', reset);
 
         // Start the game
@@ -569,5 +601,3 @@
     </script>
 </body>
 </html>
-
-
