@@ -13,6 +13,7 @@
             padding: 0;
             background-color: #000;
             color: #0F0;
+            touch-action: none; /* AÑADIDO: Previene scroll/zoom en móvil */
         }
         canvas {
             background-color: #0a0a1a;
@@ -87,6 +88,29 @@
             padding: 10px 20px;
             border-radius: 5px;
         }
+        
+        /* --- AÑADIDO: Estilos para controles táctiles --- */
+        .touch-button {
+            position: fixed;
+            background: rgba(0, 30, 0, 0.5);
+            border: 2px solid #0F0;
+            color: #0F0;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            user-select: none;
+            -webkit-user-select: none; /* Safari */
+            z-index: 10;
+            touch-action: none;
+        }
+        .touch-button:active {
+            background: rgba(0, 70, 0, 0.8);
+        }
+        /* --- FIN AÑADIDO --- */
     </style>
 </head>
 <body class="bg-black flex items-center justify-center h-screen">
@@ -114,6 +138,19 @@
         Usa las flechas: [↑] para propulsión, [←] [→] para rotar. [Espacio] para quemar combustible. [R] para reiniciar.
     </div>
 
+    <div style="position: fixed; bottom: 30px; left: 20px; z-index: 10; display: flex; gap: 20px;">
+        <div id="touchLeft" class="touch-button"><span>&larr;</span></div>
+        <div id="touchRight" class="touch-button"><span>&rarr;</span></div>
+    </div>
+    
+    <div style="position: fixed; bottom: 30px; right: 20px; z-index: 10; display: flex; gap: 20px;">
+        <div id="touchBurn" class="touch-button" style="font-size: 0.8em; border-radius: 10px; width: 80px;"><span>QUEMAR</span></div>
+        <div id="touchThrust" class="touch-button"><span>&uarr;</span></div>
+    </div>
+
+    <div id="touchRestart" class="touch-button" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.5em;">
+        <span>R</span>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -127,6 +164,13 @@
         const messageBoxEl = document.getElementById('messageBox');
         const messageTextEl = document.getElementById('messageText');
         const subMessageTextEl = document.getElementById('subMessageText');
+        
+        // AÑADIDO: UI Elements - Controles Táctiles
+        const touchLeftEl = document.getElementById('touchLeft');
+        const touchRightEl = document.getElementById('touchRight');
+        const touchThrustEl = document.getElementById('touchThrust');
+        const touchBurnEl = document.getElementById('touchBurn');
+        const touchRestartEl = document.getElementById('touchRestart');
 
         let gameWidth, gameHeight;
 
@@ -592,6 +636,74 @@
             tryStartMusic();
         });
         // ---------------------
+
+
+        // --- AÑADIDO: Controladores de Eventos Táctiles ---
+
+        // Función auxiliar para manejar el inicio del toque
+        function handleTouchStart(e) {
+            tryStartMusic(); // Inicia la música con la primera interacción
+            e.preventDefault(); // Previene el zoom/scroll/click fantasma
+            
+            switch (e.currentTarget.id) {
+                case 'touchLeft':
+                    keys['ArrowLeft'] = true;
+                    break;
+                case 'touchRight':
+                    keys['ArrowRight'] = true;
+                    break;
+                case 'touchThrust':
+                    keys['ArrowUp'] = true;
+                    break;
+                case 'touchBurn':
+                    keys[' '] = true; // Simula la barra espaciadora
+                    break;
+                case 'touchRestart':
+                    reset();
+                    break;
+            }
+        }
+
+        // Función auxiliar para manejar el fin del toque
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            
+            switch (e.currentTarget.id) {
+                case 'touchLeft':
+                    keys['ArrowLeft'] = false;
+                    break;
+                case 'touchRight':
+                    keys['ArrowRight'] = false;
+                    break;
+                case 'touchThrust':
+                    keys['ArrowUp'] = false;
+                    break;
+                case 'touchBurn':
+                    keys[' '] = false;
+                    break;
+                // No es necesario para 'touchRestart' ya que es una acción instantánea
+            }
+        }
+
+        // Asignar los listeners
+        touchLeftEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+        touchRightEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+        touchThrustEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+        touchBurnEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+        touchRestartEl.addEventListener('touchstart', handleTouchStart, { passive: false });
+
+        touchLeftEl.addEventListener('touchend', handleTouchEnd);
+        touchRightEl.addEventListener('touchend', handleTouchEnd);
+        touchThrustEl.addEventListener('touchend', handleTouchEnd);
+        touchBurnEl.addEventListener('touchend', handleTouchEnd);
+        
+        // Manejar cancelación de toque (ej. si el dedo se sale de la pantalla)
+        touchLeftEl.addEventListener('touchcancel', handleTouchEnd);
+        touchRightEl.addEventListener('touchcancel', handleTouchEnd);
+        touchThrustEl.addEventListener('touchcancel', handleTouchEnd);
+        touchBurnEl.addEventListener('touchcancel', handleTouchEnd);
+        // --- FIN AÑADIDO ---
+
 
         window.addEventListener('resize', reset);
 
