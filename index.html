@@ -87,28 +87,33 @@
             background: rgba(0,0,0,0.5);
             padding: 10px 20px;
             border-radius: 5px;
+            z-index: 50; /* AÑADIDO: Asegura que esté sobre el canvas */
         }
         
-        /* --- AÑADIDO: Estilos para controles táctiles --- */
-        .touch-button {
+        /* --- AÑADIDO: Estilos para controles táctiles (CORREGIDOS) --- */
+        .touch-controls-container {
             position: fixed;
-            background: rgba(0, 30, 0, 0.5);
+            z-index: 100; /* MUY IMPORTANTE: Asegura visibilidad */
+            opacity: 0.7; /* Ligeramente transparente */
+        }
+        
+        .touch-button {
+            background: rgba(0, 50, 0, 0.7);
             border: 2px solid #0F0;
             color: #0F0;
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: 2.5em;
             user-select: none;
             -webkit-user-select: none; /* Safari */
-            z-index: 10;
             touch-action: none;
         }
         .touch-button:active {
-            background: rgba(0, 70, 0, 0.8);
+            background: rgba(0, 100, 0, 0.9);
         }
         /* --- FIN AÑADIDO --- */
     </style>
@@ -138,18 +143,20 @@
         Usa las flechas: [↑] para propulsión, [←] [→] para rotar. [Espacio] para quemar combustible. [R] para reiniciar.
     </div>
 
-    <div style="position: fixed; bottom: 30px; left: 20px; z-index: 10; display: flex; gap: 20px;">
+    <div class="touch-controls-container" style="bottom: 20px; left: 20px; display: flex; gap: 20px;">
         <div id="touchLeft" class="touch-button"><span>&larr;</span></div>
         <div id="touchRight" class="touch-button"><span>&rarr;</span></div>
     </div>
     
-    <div style="position: fixed; bottom: 30px; right: 20px; z-index: 10; display: flex; gap: 20px;">
-        <div id="touchBurn" class="touch-button" style="font-size: 0.8em; border-radius: 10px; width: 80px;"><span>QUEMAR</span></div>
+    <div class="touch-controls-container" style="bottom: 20px; right: 20px; display: flex; gap: 20px;">
+        <div id="touchBurn" class="touch-button" style="font-size: 1em; width: 85px; border-radius: 15px;"><span>QUEMAR</span></div>
         <div id="touchThrust" class="touch-button"><span>&uarr;</span></div>
     </div>
 
-    <div id="touchRestart" class="touch-button" style="position: fixed; top: 20px; right: 20px; width: 50px; height: 50px; font-size: 1.5em;">
-        <span>R</span>
+    <div class="touch-controls-container" style="top: 20px; right: 20px;">
+         <div id="touchRestart" class="touch-button" style="width: 55px; height: 55px; font-size: 1.8em;">
+            <span>R</span>
+        </div>
     </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
@@ -164,13 +171,15 @@
         const messageBoxEl = document.getElementById('messageBox');
         const messageTextEl = document.getElementById('messageText');
         const subMessageTextEl = document.getElementById('subMessageText');
-        
-        // AÑADIDO: UI Elements - Controles Táctiles
+
+        // --- AÑADIDO: UI Elements Táctiles y Controles ---
         const touchLeftEl = document.getElementById('touchLeft');
         const touchRightEl = document.getElementById('touchRight');
         const touchThrustEl = document.getElementById('touchThrust');
         const touchBurnEl = document.getElementById('touchBurn');
         const touchRestartEl = document.getElementById('touchRestart');
+        const controlsEl = document.querySelector('.controls'); // Para ocultar instrucciones
+        // --- FIN AÑADIDO ---
 
         let gameWidth, gameHeight;
 
@@ -612,6 +621,15 @@
             messageBoxEl.style.display = 'none';
 
             keys = {};
+
+            // --- AÑADIDO: Ocultar instrucciones después de 10s ---
+            if (controlsEl) {
+                controlsEl.style.display = 'block'; // Asegura que sea visible al reiniciar
+                setTimeout(() => {
+                    controlsEl.style.display = 'none';
+                }, 10000); // 10000ms = 10 segundos
+            }
+            // --- FIN AÑADIDO ---
         }
 
         window.addEventListener('keydown', (e) => {
@@ -637,10 +655,7 @@
         });
         // ---------------------
 
-
         // --- AÑADIDO: Controladores de Eventos Táctiles ---
-
-        // Función auxiliar para manejar el inicio del toque
         function handleTouchStart(e) {
             tryStartMusic(); // Inicia la música con la primera interacción
             e.preventDefault(); // Previene el zoom/scroll/click fantasma
@@ -650,6 +665,7 @@
                     keys['ArrowLeft'] = true;
                     break;
                 case 'touchRight':
+"
                     keys['ArrowRight'] = true;
                     break;
                 case 'touchThrust':
@@ -664,7 +680,6 @@
             }
         }
 
-        // Función auxiliar para manejar el fin del toque
         function handleTouchEnd(e) {
             e.preventDefault();
             
