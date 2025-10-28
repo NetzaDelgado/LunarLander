@@ -13,7 +13,7 @@
             padding: 0;
             background-color: #000;
             color: #0F0;
-            touch-action: none; /* AÑADIDO: Previene scroll/zoom en móvil */
+            touch-action: none; /* Previene scroll/zoom en móvil */
         }
         canvas {
             background-color: #0a0a1a;
@@ -29,6 +29,7 @@
             border: 1px solid #0F0;
             color: #0F0;
             min-width: 250px;
+            z-index: 10;
         }
         .info-panel h2 {
             margin-top: 0;
@@ -52,6 +53,7 @@
             text-align: center;
             font-size: 2em;
             display: none; /* Oculto por defecto */
+            z-index: 200;
         }
         .message-box p {
             margin: 0;
@@ -87,10 +89,11 @@
             background: rgba(0,0,0,0.5);
             padding: 10px 20px;
             border-radius: 5px;
-            z-index: 50; /* AÑADIDO: Asegura que esté sobre el canvas */
+            z-index: 50; /* Asegura que esté sobre el canvas */
+            transition: opacity 0.5s ease-out; /* Transición para desaparecer */
         }
         
-        /* --- AÑADIDO: Estilos para controles táctiles (CORREGIDOS) --- */
+        /* Estilos para controles táctiles */
         .touch-controls-container {
             position: fixed;
             z-index: 100; /* MUY IMPORTANTE: Asegura visibilidad */
@@ -115,7 +118,6 @@
         .touch-button:active {
             background: rgba(0, 100, 0, 0.9);
         }
-        /* --- FIN AÑADIDO --- */
     </style>
 </head>
 <body class="bg-black flex items-center justify-center h-screen">
@@ -139,10 +141,12 @@
         <span id="subMessageText"></span>
     </div>
 
-    <div class="controls">
+    <!-- Este letrero desaparecerá solo -->
+    <div id="controlsBanner" class="controls">
         Usa las flechas: [↑] para propulsión, [←] [→] para rotar. [Espacio] para quemar combustible. [R] para reiniciar.
     </div>
 
+    <!-- Controles Táctiles -->
     <div class="touch-controls-container" style="bottom: 20px; left: 20px; display: flex; gap: 20px;">
         <div id="touchLeft" class="touch-button"><span>&larr;</span></div>
         <div id="touchRight" class="touch-button"><span>&rarr;</span></div>
@@ -158,6 +162,8 @@
             <span>R</span>
         </div>
     </div>
+
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -172,16 +178,16 @@
         const messageTextEl = document.getElementById('messageText');
         const subMessageTextEl = document.getElementById('subMessageText');
 
-        // --- AÑADIDO: UI Elements Táctiles y Controles ---
+        // UI Elements Táctiles y Controles
         const touchLeftEl = document.getElementById('touchLeft');
         const touchRightEl = document.getElementById('touchRight');
         const touchThrustEl = document.getElementById('touchThrust');
         const touchBurnEl = document.getElementById('touchBurn');
         const touchRestartEl = document.getElementById('touchRestart');
-        const controlsEl = document.querySelector('.controls'); // Para ocultar instrucciones
-        // --- FIN AÑADIDO ---
+        const controlsEl = document.getElementById('controlsBanner'); // Para ocultar instrucciones
 
         let gameWidth, gameHeight;
+        let controlsTimeout; // Timer para ocultar instrucciones
 
         // Game state
         let lander;
@@ -194,26 +200,20 @@
         let particles = [];
         let gameOver = false;
         
-        // --- Música de fondo ---
+        // Música de fondo
         let musicStarted = false;
         const bgMusic = new Audio('https://archive.org/download/mta_20240824/04%20-%20Ashes%20To%20Ashes%20%2812-Minute%20Disco%20Version%29.mp3');
         bgMusic.loop = true;
 
         function tryStartMusic() {
             if (!musicStarted) {
-                // play() devuelve una promesa
                 bgMusic.play().then(() => {
-                    // Si tiene éxito, marcamos que ya inició
                     musicStarted = true;
                 }).catch(error => {
-                    // Si falla (porque el navegador lo bloqueó), no hacemos nada.
-                    // musicStarted seguirá siendo 'false' y lo intentaremos
-                    // en la próxima interacción.
                     console.log("Esperando interacción del usuario para iniciar la música...");
                 });
             }
         }
-        // ---------------------
         
         const MAX_LANDING_VSPEED = 0.4;
         const MAX_LANDING_HSPEED = 0.4;
@@ -302,7 +302,6 @@
                 // Thrust flame
                 if (this.thrusting) {
                     const flameLength = this.height / 2 + Math.random() * 20 + 10;
-                    // Outer flame (orange/red)
                     ctx.beginPath();
                     ctx.moveTo(-this.width / 4, this.height / 2);
                     ctx.lineTo(this.width / 4, this.height / 2);
@@ -310,12 +309,10 @@
                     ctx.closePath();
                     ctx.fillStyle = `rgba(255, 180, 0, 0.8)`;
                     ctx.fill();
-
-                    // Inner flame (yellow/white)
                     ctx.beginPath();
                     ctx.moveTo(-this.width / 8, this.height / 2);
                     ctx.lineTo(this.width / 8, this.height / 2);
-                    ctx.lineTo(0, flameLength * 0.7); // Shorter inner flame
+                    ctx.lineTo(0, flameLength * 0.7);
                     ctx.closePath();
                     ctx.fillStyle = `rgba(255, 255, 200, 0.95)`;
                     ctx.fill();
@@ -324,7 +321,6 @@
                 // Fuel burn flame (lateral)
                 if (this.burningFuel) {
                     ctx.beginPath();
-                    // Flame coming out the side
                     ctx.moveTo(this.width / 2, 0);
                     ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, -5);
                     ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, 5);
@@ -352,7 +348,7 @@
             }
             
             update() {
-                this.vy += gravity * 2; // Particles are also affected by gravity
+                this.vy += gravity * 2;
                 this.x += this.vx;
                 this.y += this.vy;
                 this.life--;
@@ -400,47 +396,41 @@
             const segmentCount = 100;
             const segmentWidth = gameWidth / segmentCount;
 
-            // Find a flat spot for the landing pad
             const padIndex = Math.floor(Math.random() * (segmentCount - 14)) + 5; 
             
             for (let i = 1; i <= segmentCount; i++) {
                 if (i >= padIndex && i <= padIndex + 8) { 
-                    // Flat area for landing pad
                     if (i === padIndex) {
                         landingPad.x = terrain[terrain.length - 1].x;
                         landingPad.y = y;
                         landingPad.width = segmentWidth * 8; 
                     }
                 } else {
-                    // Introduce craters
-                    if (Math.random() < 0.05) { // 5% chance to start a crater
-                        const craterDepth = Math.random() * 40 + 20; // Depth between 20-60
-                        const craterWidth = Math.random() * 5 + 3; // Width in segments (3-8 segments wide)
+                    if (Math.random() < 0.05) {
+                        const craterDepth = Math.random() * 40 + 20;
+                        const craterWidth = Math.random() * 5 + 3;
                         for (let j = 0; j < craterWidth; j++) {
                             if (i + j < segmentCount) {
                                 let craterY = y + Math.sin(j / craterWidth * Math.PI) * craterDepth;
-                                // Clamp terrain height
                                 if (craterY > gameHeight - 50) craterY = gameHeight - 50;
                                 if (craterY < gameHeight / 2) craterY = gameHeight / 2;
                                 terrain.push({ x: (i + j) * segmentWidth, y: craterY });
                             }
                         }
-                        i += craterWidth - 1; // Skip ahead after creating crater
-                        y = terrain[terrain.length - 1].y; // Actualizar 'y' al final del cráter
-                        continue; // <-- ESTA ES LA CORRECCIÓN: Saltar el push de terreno principal
+                        i += craterWidth - 1;
+                        y = terrain[terrain.length - 1].y;
+                        continue;
                     } else {
                         y += (Math.random() - 0.5) * segmentWidth * roughness;
                     }
                 }
-                 // Clamp terrain height
                 if (y > gameHeight - 50) y = gameHeight - 50;
                 if (y < gameHeight / 2) y = gameHeight / 2;
 
-                if (i < segmentCount) { // Ensure we don't push extra points if crater generation went past boundary
+                if (i < segmentCount) {
                     terrain.push({ x: i * segmentWidth, y: y });
                 }
             }
-            // Ensure the last point reaches the edge if the loop ended early due to crater generation
             if (terrain[terrain.length - 1].x < gameWidth) {
                 terrain.push({ x: gameWidth, y: terrain[terrain.length - 1].y });
             }
@@ -449,9 +439,8 @@
         function checkCollisions() {
             if (lander.crashed || lander.landed) return;
             
-            // Basic screen bounds check
             if (lander.x < 0 || lander.x > gameWidth) {
-                lander.vx = -lander.vx; // Bounce off sides
+                lander.vx = -lander.vx;
             }
 
             const landerPoints = [
@@ -463,7 +452,6 @@
                 const p1 = terrain[i];
                 const p2 = terrain[i + 1];
 
-                // Simple collision: check if lander bottom points are below the terrain line segment
                 for (const point of landerPoints) {
                     if (point.x >= p1.x && point.x <= p2.x) {
                         const terrainY = p1.y + (p2.y - p1.y) * ((point.x - p1.x) / (p2.x - p1.x));
@@ -502,12 +490,9 @@
         }
 
         function draw() {
-            // Clear canvas
             ctx.clearRect(0, 0, gameWidth, gameHeight);
-            
-            // Draw Stars
             drawStars();
-
+            
             // Draw terrain
             ctx.beginPath();
             ctx.moveTo(terrain[0].x, terrain[0].y);
@@ -536,7 +521,6 @@
                 }
             });
 
-            // Draw lander
             lander.draw();
         }
 
@@ -591,15 +575,18 @@
         }
         
         function gameLoop() {
-            // Reiniciar el estado de los propulsores en cada fotograma
-            if (lander) {
+            if (lander) { // Asegurarse que lander existe
                 lander.thrusting = false;
                 lander.burningFuel = false;
             }
 
             handleInput();
-            lander.update();
-            checkCollisions();
+            
+            if (lander) { // Asegurarse que lander existe
+                lander.update();
+                checkCollisions();
+            }
+            
             draw();
             updateUI();
             
@@ -619,23 +606,23 @@
             gameOver = false;
             
             messageBoxEl.style.display = 'none';
-
             keys = {};
 
-            // --- AÑADIDO: Ocultar instrucciones después de 10s ---
+            // Ocultar instrucciones después de 10s
             if (controlsEl) {
-                controlsEl.style.display = 'block'; // Asegura que sea visible al reiniciar
-                setTimeout(() => {
-                    controlsEl.style.display = 'none';
+                clearTimeout(controlsTimeout); // Limpiar timer anterior si existe
+                controlsEl.style.opacity = 1; // Asegura que sea visible
+                controlsEl.style.display = 'block';
+                controlsTimeout = setTimeout(() => {
+                    controlsEl.style.opacity = 0;
+                    // Ocultar completamente después de la transición
+                    setTimeout(() => { controlsEl.style.display = 'none'; }, 500); 
                 }, 10000); // 10000ms = 10 segundos
             }
-            // --- FIN AÑADIDO ---
         }
 
         window.addEventListener('keydown', (e) => {
-            // Inicia la música con la primera interacción del usuario
             tryStartMusic();
-
             if (e.key === 'r' || e.key === 'R') {
                 reset();
             } else {
@@ -647,25 +634,21 @@
             keys[e.key] = false;
         });
 
-        // --- NUEVO LISTENER ---
-        // Agregamos un listener para 'mousedown' (clic) como otra forma
-        // de iniciar la música si la tecla falla.
         window.addEventListener('mousedown', () => {
             tryStartMusic();
         });
-        // ---------------------
 
-        // --- AÑADIDO: Controladores de Eventos Táctiles ---
+        // Controladores de Eventos Táctiles
         function handleTouchStart(e) {
-            tryStartMusic(); // Inicia la música con la primera interacción
-            e.preventDefault(); // Previene el zoom/scroll/click fantasma
+            tryStartMusic();
+            e.preventDefault();
             
             switch (e.currentTarget.id) {
                 case 'touchLeft':
                     keys['ArrowLeft'] = true;
                     break;
                 case 'touchRight':
-"
+                    // --- ¡CORRECCIÓN! Se eliminó la comilla extra ---
                     keys['ArrowRight'] = true;
                     break;
                 case 'touchThrust':
@@ -696,11 +679,10 @@
                 case 'touchBurn':
                     keys[' '] = false;
                     break;
-                // No es necesario para 'touchRestart' ya que es una acción instantánea
             }
         }
 
-        // Asignar los listeners
+        // Asignar los listeners táctiles
         touchLeftEl.addEventListener('touchstart', handleTouchStart, { passive: false });
         touchRightEl.addEventListener('touchstart', handleTouchStart, { passive: false });
         touchThrustEl.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -712,13 +694,10 @@
         touchThrustEl.addEventListener('touchend', handleTouchEnd);
         touchBurnEl.addEventListener('touchend', handleTouchEnd);
         
-        // Manejar cancelación de toque (ej. si el dedo se sale de la pantalla)
         touchLeftEl.addEventListener('touchcancel', handleTouchEnd);
         touchRightEl.addEventListener('touchcancel', handleTouchEnd);
         touchThrustEl.addEventListener('touchcancel', handleTouchEnd);
         touchBurnEl.addEventListener('touchcancel', handleTouchEnd);
-        // --- FIN AÑADIDO ---
-
 
         window.addEventListener('resize', reset);
 
