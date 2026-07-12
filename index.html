@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lunar Lander</title>
+    <title>Lunar Lander - Simulador Físico</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -11,23 +11,31 @@
             overflow: hidden;
             margin: 0;
             padding: 0;
-            background-color: #000;
+            background-color: #050510;
             color: #0F0;
+            user-select: none;
         }
         canvas {
             background-color: #0a0a1a;
             display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+        .ui-panel {
+            position: absolute;
+            background: rgba(0, 15, 0, 0.75);
+            border: 1px solid #0F0;
+            border-radius: 8px;
+            color: #0F0;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
         }
         .info-panel {
-            position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.5);
             padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #0F0;
-            color: #0F0;
-            min-width: 250px;
+            min-width: 280px;
+            font-size: 0.9em;
         }
         .info-panel h2 {
             margin-top: 0;
@@ -35,112 +43,204 @@
             border-bottom: 1px solid #0F0;
             padding-bottom: 5px;
             margin-bottom: 10px;
+            text-shadow: 0 0 5px #0F0;
         }
         .info-panel p {
-            margin: 5px 0;
+            margin: 4px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .settings-panel {
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+        }
+        select, input[type="range"] {
+            background: #000;
+            color: #0F0;
+            border: 1px solid #0F0;
+            padding: 4px;
+            width: 100%;
+            margin-top: 5px;
+            font-family: inherit;
         }
         .message-box {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 20, 0, 0.8);
+            background: rgba(0, 20, 0, 0.95);
             padding: 30px;
             border-radius: 10px;
             border: 2px solid #0F0;
             text-align: center;
-            font-size: 2em;
-            display: none; /* Oculto por defecto */
+            display: none;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            z-index: 50;
         }
-        .message-box p {
-            margin: 0;
+        .message-box h1 {
+            font-size: 2.5em;
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 10px currentColor;
         }
-        .message-box span {
-            font-size: 0.6em;
-            display: block;
-            margin-top: 15px;
-            color: #8F8;
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 0.85em;
+        }
+        .history-table th, .history-table td {
+            border: 1px solid #0F0;
+            padding: 8px;
+            text-align: center;
         }
         .fuel-bar-container {
             width: 100%;
-            height: 20px;
-            background-color: #333;
+            height: 15px;
+            background-color: #111;
             border: 1px solid #0F0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
+            margin-top: 5px;
+            position: relative;
         }
         .fuel-bar {
             height: 100%;
             background-color: #0F0;
             width: 100%;
-            transition: width 0.2s ease-out;
+            transition: width 0.1s linear;
         }
-        .controls {
+        .controls-hint {
             position: absolute;
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            color: #999;
-            font-size: 0.9em;
-            background: rgba(0,0,0,0.5);
+            color: #aaa;
+            font-size: 0.85em;
+            background: rgba(0,0,0,0.6);
             padding: 10px 20px;
             border-radius: 5px;
+            border: 1px dashed #555;
+            text-align: center;
+            pointer-events: none;
+        }
+        .btn-restart {
+            margin-top: 20px;
+            background: #0F0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .btn-restart:hover {
+            background: #fff;
+            box-shadow: 0 0 15px #0F0;
+        }
+        .metric-value {
+            font-weight: bold;
         }
     </style>
 </head>
-<body class="bg-black flex items-center justify-center h-screen">
+<body>
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="infoPanel" class="info-panel">
+    <!-- Telemetría (Física) -->
+    <div class="ui-panel info-panel">
         <h2>TELEMETRÍA</h2>
-        <p>Velocidad Horizontal: <span id="hSpeed">0.00</span> m/s</p>
-        <p>Velocidad Vertical: <span id="vSpeed">0.00</span> m/s</p>
-        <p>Altitud: <span id="altitude">0</span> m</p>
-        <p>Ángulo: <span id="angle">0</span>°</p>
+        <p>Altitud (h): <span class="metric-value" id="altitude">0</span> m</p>
+        <p>Vel. Horizontal (vx): <span class="metric-value" id="hSpeed">0.00</span> m/s</p>
+        <p>Vel. Vertical (vy): <span class="metric-value" id="vSpeed">0.00</span> m/s</p>
+        <p>Ángulo (θ): <span class="metric-value" id="angle">0.0</span>°</p>
+        <hr style="border-color:#0F0; opacity:0.3; margin:10px 0;">
+        <p>Masa Nave (m): <span class="metric-value" id="mass">1500</span> kg</p>
+        <p>E. Cinética (Ek): <span class="metric-value" id="kinEnergy">0</span> kJ</p>
+        <p>E. Potencial (Ep): <span class="metric-value" id="potEnergy">0</span> kJ</p>
+        <p>E. Mecánica (Em): <span class="metric-value" id="mecEnergy">0</span> kJ</p>
+        <p>Paracaídas: <span class="metric-value" id="parachuteStatus" style="color: #aaa;">Inactivo</span></p>
+        <hr style="border-color:#0F0; opacity:0.3; margin:10px 0;">
         <p>Combustible:</p>
         <div class="fuel-bar-container">
             <div id="fuelBar" class="fuel-bar"></div>
         </div>
     </div>
+
+    <!-- Ajustes de Entorno -->
+    <div class="ui-panel settings-panel">
+        <h2 style="font-size: 1.2em; border-bottom: 1px solid #0F0; margin-bottom: 10px; margin-top: 0;">ENTORNO</h2>
+        <label for="gravitySelect" style="font-size: 0.9em;">Cuerpo Celeste:</label>
+        <select id="gravitySelect">
+            <option value="1.62">Luna (g = 1.62 m/s²)</option>
+            <option value="3.71">Marte (g = 3.71 m/s²)</option>
+            <option value="9.81">Tierra (g = 9.81 m/s²)</option>
+        </select>
+        <label for="thrustRange" style="font-size: 0.9em; display: block; margin-top: 15px;">Fuerza Motor Principal:</label>
+        <input type="range" id="thrustRange" min="2000" max="25000" step="500" value="6000">
+        <p style="font-size: 0.8em; text-align: right;"><span id="thrustDisplay">6000</span> N</p>
+    </div>
     
+    <!-- Modal de Resultados e Historial -->
     <div id="messageBox" class="message-box">
-        <p id="messageText"></p>
-        <span id="subMessageText"></span>
+        <h1 id="messageTitle">RESULTADO</h1>
+        <p id="messageSub"></p>
+        
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Intento</th>
+                    <th>vx (m/s)</th>
+                    <th>vy (m/s)</th>
+                    <th>Ángulo</th>
+                    <th>Combus. Restante</th>
+                    <th>Resultado</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody">
+                <!-- Se llena dinámicamente -->
+            </tbody>
+        </table>
+
+        <button class="btn-restart" onclick="reset()">Volver a Intentar (R)</button>
     </div>
 
-    <div class="controls">
-        Usa las flechas: [↑] para propulsión, [←] [→] para rotar. [Espacio] para quemar combustible. [R] para reiniciar.
+    <div class="controls-hint">
+        [↑] Empuje Principal | [←] [→] Motores RCS | [P] Paracaídas (Solo Tierra) | [R] Reiniciar<br>
+        <span style="opacity:0.7">Aterriza a menos de 2.0 m/s verticales y 1.0 m/s horizontales.</span>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        // UI Elements
-        const hSpeedEl = document.getElementById('hSpeed');
-        const vSpeedEl = document.getElementById('vSpeed');
-        const altitudeEl = document.getElementById('altitude');
-        const angleEl = document.getElementById('angle');
-        const fuelBarEl = document.getElementById('fuelBar');
-        const messageBoxEl = document.getElementById('messageBox');
-        const messageTextEl = document.getElementById('messageText');
-        const subMessageTextEl = document.getElementById('subMessageText');
+        // Referencias UI
+        const ui = {
+            hSpeed: document.getElementById('hSpeed'),
+            vSpeed: document.getElementById('vSpeed'),
+            altitude: document.getElementById('altitude'),
+            angle: document.getElementById('angle'),
+            mass: document.getElementById('mass'),
+            kinEnergy: document.getElementById('kinEnergy'),
+            potEnergy: document.getElementById('potEnergy'),
+            mecEnergy: document.getElementById('mecEnergy'),
+            fuelBar: document.getElementById('fuelBar'),
+            messageBox: document.getElementById('messageBox'),
+            messageTitle: document.getElementById('messageTitle'),
+            messageSub: document.getElementById('messageSub'),
+            gravitySelect: document.getElementById('gravitySelect'),
+            thrustRange: document.getElementById('thrustRange'),
+            thrustDisplay: document.getElementById('thrustDisplay'),
+            historyBody: document.getElementById('historyBody'),
+            parachuteStatus: document.getElementById('parachuteStatus')
+        };
 
-        let gameWidth, gameHeight;
+        // Escala física: cuántos píxeles en pantalla representan 1 metro
+        const PIXELS_PER_METER = 3; 
 
-        // Game state
-        let lander;
-        let gravity = 0.0005;
-        let thrustPower = 0.0015;
-        let rotationSpeed = 0.05;
-        let keys = {};
-        let terrain = [];
-        let landingPad = {};
-        let particles = [];
-        let gameOver = false;
-        
         // --- Música de fondo ---
         let musicStarted = false;
         const bgMusic = new Audio('https://archive.org/download/01-speak-to-me-breathe/04%20The%20Great%20Gig%20In%20The%20Sky.wav');
@@ -148,77 +248,159 @@
 
         function tryStartMusic() {
             if (!musicStarted) {
-                // play() devuelve una promesa
                 bgMusic.play().then(() => {
-                    // Si tiene éxito, marcamos que ya inició
                     musicStarted = true;
                 }).catch(error => {
-                    // Si falla (porque el navegador lo bloqueó), no hacemos nada.
-                    // musicStarted seguirá siendo 'false' y lo intentaremos
-                    // en la próxima interacción.
                     console.log("Esperando interacción del usuario para iniciar la música...");
                 });
             }
         }
-        // ---------------------
-        
-        const MAX_LANDING_VSPEED = 0.4;
-        const MAX_LANDING_HSPEED = 0.4;
-        const MAX_LANDING_ANGLE = 5; // degrees
 
-        // Lander class
+        // Variables de Tiempo para Método de Euler
+        let previousTime = performance.now();
+        let animationFrameId;
+        
+        // Estado Global
+        let gameWidth, gameHeight;
+        let lander;
+        let terrain = [];
+        let landingPad = {};
+        let particles = [];
+        let keys = {};
+        let gameOver = false;
+        let attemptNumber = 0;
+        let flightHistory = [];
+
+        // Condiciones de aterrizaje seguro
+        const MAX_LANDING_VSPEED = 2.0;  // m/s
+        const MAX_LANDING_HSPEED = 1.0;  // m/s
+        const MAX_LANDING_ANGLE = 5;     // grados
+
+        // Eventos UI Controles
+        ui.thrustRange.addEventListener('input', (e) => {
+            ui.thrustDisplay.textContent = e.target.value;
+        });
+
         class Lander {
             constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.width = 20;
-                this.height = 20;
-                this.vx = 0.5; // Initial horizontal velocity
-                this.vy = 0;
-                this.angle = 0; // in radians
-                this.fuel = 2000; 
+                // Posición y Cinemática
+                this.x = x; // pixeles
+                this.y = y; // pixeles
+                this.width = 24; // pixeles
+                this.height = 24; // pixeles
+                
+                // Variables físicas del Método de Euler (Unidades SI reales)
+                this.vx = 8.0; // m/s (inicia con velocidad horizontal)
+                this.vy = 0.0; // m/s
+                this.angle = 0.0; // radianes
+                this.angularVelocity = 0.0; // rad/s
+                
+                // Propiedades Dinámicas (Masa y Fuerzas)
+                this.dryMass = 1000; // kg
+                this.fuelMass = 500; // kg
+                this.momentOfInertia = 2500; // kg*m² (Aprox para un cilindro)
+                
+                // Especificaciones de Motores
+                this.mainEngineFuelRate = 10; // kg/s consumidos al 100% de empuje
+                this.rcsTorque = 1500; // N*m (Torque de los propulsores de rotación)
+                this.rcsFuelRate = 2; // kg/s consumidos por RCS
+                
+                // Estados
                 this.crashed = false;
                 this.landed = false;
                 this.thrusting = false;
-                this.burningFuel = false;
-            }
-
-            rotate(direction) {
-                if (this.fuel > 0) {
-                    this.angle += rotationSpeed * direction;
-                    this.fuel -= 0.1;
-                }
-            }
-
-            applyThrust() {
-                if (this.fuel > 0) {
-                    this.thrusting = true;
-                    // Calculate thrust vector based on angle
-                    this.vx += Math.sin(this.angle) * thrustPower;
-                    this.vy -= Math.cos(this.angle) * thrustPower;
-                    this.fuel -= 1;
-                    if (this.fuel < 0) this.fuel = 0;
-                } else {
-                    this.thrusting = false;
-                }
-            }
-
-            burnFuel() {
-                if (this.fuel > 0) {
-                    this.burningFuel = true;
-                    this.fuel -= 5; // Quema combustible rápidamente
-                    if (this.fuel < 0) this.fuel = 0;
-                } else {
-                    this.burningFuel = false;
-                }
-            }
-
-            update() {
-                if (this.crashed || this.landed) return;
+                this.rcsLeft = false;
+                this.rcsRight = false;
                 
-                this.vy += gravity;
-                this.x += this.vx;
-                this.y += this.vy;
+                // --- NUEVO: Estado del paracaídas ---
+                this.parachuteDeployed = false; 
+            }
+
+            get totalMass() {
+                return this.dryMass + this.fuelMass;
+            }
+
+            // Integración Numérica (Método de Euler modificado)
+            update(dt) {
+                if (this.crashed || this.landed) return;
+
+                // 1. Obtener parámetros del entorno
+                const currentGravity = parseFloat(ui.gravitySelect.value); // m/s²
+                const maxThrustForce = parseFloat(ui.thrustRange.value); // Newtons
+
+                // 2. Sumatoria de Fuerzas (2da Ley de Newton)
+                let forceX = 0;
+                let forceY = this.totalMass * currentGravity; // Peso = m*g (hacia abajo positivo en canvas)
+                let netTorque = 0;
+
+                // Propulsión Principal
+                this.thrusting = keys['ArrowUp'] && this.fuelMass > 0;
+                if (this.thrusting) {
+                    // Descomposición vectorial de la fuerza
+                    forceX += Math.sin(this.angle) * maxThrustForce;
+                    forceY -= Math.cos(this.angle) * maxThrustForce; // Negativo porque empuja hacia arriba
+                    this.fuelMass -= this.mainEngineFuelRate * dt;
+                }
+
+                // Propulsión RCS (Rotación)
+                this.rcsLeft = keys['ArrowRight'] && this.fuelMass > 0; // Rotar a la derecha
+                this.rcsRight = keys['ArrowLeft'] && this.fuelMass > 0; // Rotar a la izquierda
+                
+                if (this.rcsLeft) {
+                    netTorque += this.rcsTorque;
+                    this.fuelMass -= this.rcsFuelRate * dt;
+                }
+                if (this.rcsRight) {
+                    netTorque -= this.rcsTorque;
+                    this.fuelMass -= this.rcsFuelRate * dt;
+                }
+
+                // Evitar masa de combustible negativa
+                if (this.fuelMass < 0) this.fuelMass = 0;
+
+                // --- NUEVO: Fuerza de Arrastre Aerodinámico (Paracaídas) ---
+                // Fd = 1/2 * rho * v^2 * Cd * A. Simplificado aquí como Drag = Coefficient * v^2
+                if (this.parachuteDeployed) {
+                    // Fricción sustancial para compensar la gravedad de la Tierra sin usar motor
+                    const dragCoefficientY = 4200; 
+                    const dragCoefficientX = 1500;
+                    
+                    // Se opone a la caída vertical (si vy > 0 está cayendo)
+                    if (this.vy > 0) {
+                        forceY -= dragCoefficientY * (this.vy * this.vy);
+                    }
+                    
+                    // Frena la velocidad horizontal suavemente
+                    if (Math.abs(this.vx) > 0) {
+                        forceX -= dragCoefficientX * (this.vx * this.vx) * Math.sign(this.vx);
+                    }
+                    
+                    // El paracaídas también estabiliza la rotación de la nave
+                    netTorque -= (this.angularVelocity * 10000); 
+                }
+
+                // 3. Calcular Aceleraciones (F = ma -> a = F/m) y (Torque = I*alpha -> alpha = Torque/I)
+                const ax = forceX / this.totalMass;
+                const ay = forceY / this.totalMass;
+                const alpha = netTorque / this.momentOfInertia;
+
+                // 4. Actualizar Velocidades (v_final = v_inicial + a*dt)
+                this.vx += ax * dt;
+                this.vy += ay * dt;
+                this.angularVelocity += alpha * dt;
+
+                // Fricción angular simulada base
+                this.angularVelocity *= 0.99; 
+
+                // 5. Actualizar Posiciones (x_final = x_inicial + v*dt)
+                // Multiplicamos por PIXELS_PER_METER para mapear metros a la pantalla
+                this.x += this.vx * dt * PIXELS_PER_METER;
+                this.y += this.vy * dt * PIXELS_PER_METER;
+                this.angle += this.angularVelocity * dt;
+
+                // Mantener nave dentro de la pantalla horizontalmente (toroidal)
+                if (this.x < 0) this.x = gameWidth;
+                if (this.x > gameWidth) this.x = 0;
             }
 
             draw() {
@@ -227,235 +409,368 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
-                ctx.beginPath();
                 
-                // Lander Body
-                ctx.moveTo(0, -this.height / 2);
-                ctx.lineTo(-this.width / 2, this.height / 2);
-                ctx.lineTo(this.width / 2, this.height / 2);
-                ctx.closePath();
-                ctx.fillStyle = '#ccc';
-                ctx.fill();
-                ctx.strokeStyle = '#999';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                // Window
-                ctx.beginPath();
-                ctx.arc(0, -5, 4, 0, Math.PI * 2);
-                ctx.fillStyle = '#77aaff';
-                ctx.fill();
-
-                // Thrust flame
+                // Dibujar Llama del Motor Principal
                 if (this.thrusting) {
-                    const flameLength = this.height / 2 + Math.random() * 20 + 10;
-                    // Outer flame (orange/red)
+                    const flameLength = this.height / 2 + Math.random() * 20 + 15;
                     ctx.beginPath();
-                    ctx.moveTo(-this.width / 4, this.height / 2);
-                    ctx.lineTo(this.width / 4, this.height / 2);
+                    ctx.moveTo(-this.width / 3, this.height / 2);
+                    ctx.lineTo(this.width / 3, this.height / 2);
                     ctx.lineTo(0, flameLength);
                     ctx.closePath();
-                    ctx.fillStyle = `rgba(255, 180, 0, 0.8)`;
-                    ctx.fill();
-
-                    // Inner flame (yellow/white)
-                    ctx.beginPath();
-                    ctx.moveTo(-this.width / 8, this.height / 2);
-                    ctx.lineTo(this.width / 8, this.height / 2);
-                    ctx.lineTo(0, flameLength * 0.7); // Shorter inner flame
-                    ctx.closePath();
-                    ctx.fillStyle = `rgba(255, 255, 200, 0.95)`;
+                    ctx.fillStyle = `rgba(255, ${Math.random()*100+150}, 0, 0.9)`;
                     ctx.fill();
                 }
 
-                // Fuel burn flame (lateral)
-                if (this.burningFuel) {
+                // Dibujar Llamas RCS
+                if (this.rcsLeft) { // Dispara gas hacia la izquierda para rotar a la derecha
+                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`;
                     ctx.beginPath();
-                    // Flame coming out the side
-                    ctx.moveTo(this.width / 2, 0);
-                    ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, -5);
-                    ctx.lineTo(this.width / 2 + Math.random() * 20 + 8, 5);
-                    ctx.closePath();
-                    ctx.fillStyle = `rgba(255, 120, 0, 0.8)`;
+                    ctx.moveTo(-this.width/2, -this.height/4);
+                    ctx.lineTo(-this.width/2 - 10 - Math.random()*5, -this.height/4 + 3);
+                    ctx.lineTo(-this.width/2, -this.height/4 + 6);
                     ctx.fill();
+                }
+                if (this.rcsRight) {
+                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`;
+                    ctx.beginPath();
+                    ctx.moveTo(this.width/2, -this.height/4);
+                    ctx.lineTo(this.width/2 + 10 + Math.random()*5, -this.height/4 + 3);
+                    ctx.lineTo(this.width/2, -this.height/4 + 6);
+                    ctx.fill();
+                }
+
+                // Cuerpo del Lander
+                ctx.beginPath();
+                ctx.moveTo(0, -this.height / 2); // Punta
+                ctx.lineTo(-this.width / 2, this.height / 2); // Base Izquierda
+                ctx.lineTo(this.width / 2, this.height / 2); // Base Derecha
+                ctx.closePath();
+                ctx.fillStyle = '#ccc';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Patas de aterrizaje
+                ctx.beginPath();
+                ctx.moveTo(-this.width/2, this.height/2);
+                ctx.lineTo(-this.width/2 - 5, this.height/2 + 5);
+                ctx.moveTo(this.width/2, this.height/2);
+                ctx.lineTo(this.width/2 + 5, this.height/2 + 5);
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Cabina
+                ctx.beginPath();
+                ctx.arc(0, -2, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#0ff';
+                ctx.fill();
+
+                // --- NUEVO: Dibujar Paracaídas ---
+                if (this.parachuteDeployed) {
+                    // Queremos que el paracaídas siempre apunte hacia "arriba" (contra la caída)
+                    // Como el contexto está rotado con la nave, contra-rotamos el paracaídas ligeramente
+                    // para darle realismo (tiende a alinearse con la vertical)
+                    ctx.save();
+                    ctx.rotate(-this.angle * 0.8); // Corrige casi toda la rotación de la nave
+                    
+                    // Cuerdas de tensión
+                    ctx.beginPath();
+                    ctx.moveTo(0, -this.height/2); // Desde la punta de la nave
+                    ctx.lineTo(-30, -this.height - 40);
+                    ctx.moveTo(0, -this.height/2);
+                    ctx.lineTo(30, -this.height - 40);
+                    ctx.moveTo(0, -this.height/2);
+                    ctx.lineTo(0, -this.height - 45);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    // Tela del paracaídas (Domo)
+                    ctx.beginPath();
+                    ctx.arc(0, -this.height - 40, 35, Math.PI, 0); 
+                    ctx.fillStyle = 'rgba(255, 80, 20, 0.85)';
+                    ctx.fill();
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    
+                    ctx.restore();
                 }
 
                 ctx.restore();
             }
         }
 
-        // Particle for explosion
         class Particle {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
                 const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 4 + 1;
+                const speed = (Math.random() * 20 + 5); // m/s
                 this.vx = Math.cos(angle) * speed;
                 this.vy = Math.sin(angle) * speed;
-                this.life = Math.random() * 60 + 40; // frames
+                this.life = Math.random() * 1.5 + 0.5; // segundos
+                this.maxLife = this.life;
                 this.radius = Math.random() * 3 + 1;
-                this.color = ['#ffcc00', '#ff9900', '#ff6600', '#ff3300', '#cccccc'][Math.floor(Math.random() * 5)];
+                this.color = ['#ffcc00', '#ff5500', '#ff0000', '#888888', '#ffffff'][Math.floor(Math.random() * 5)];
             }
             
-            update() {
-                this.vy += gravity * 2; // Particles are also affected by gravity
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life--;
+            update(dt) {
+                const g = parseFloat(ui.gravitySelect.value);
+                this.vy += g * dt; // Gravedad afecta partículas
+                this.x += this.vx * dt * PIXELS_PER_METER;
+                this.y += this.vy * dt * PIXELS_PER_METER;
+                this.life -= dt;
             }
 
             draw() {
+                if (this.life <= 0) return;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.life / 60;
+                ctx.globalAlpha = this.life / this.maxLife;
                 ctx.fill();
                 ctx.globalAlpha = 1;
             }
         }
 
         function createExplosion(x, y) {
-            for (let i = 0; i < 100; i++) {
+            for (let i = 0; i < 60; i++) {
                 particles.push(new Particle(x, y));
-            }
-        }
-        
-        function handleInput() {
-            if (gameOver) return;
-
-            if (keys['ArrowLeft']) {
-                lander.rotate(-1);
-            }
-            if (keys['ArrowRight']) {
-                lander.rotate(1);
-            }
-            if (keys['ArrowUp']) {
-                lander.applyThrust();
-            }
-            if (keys[' ']) { // Barra espaciadora
-                lander.burnFuel();
             }
         }
 
         function generateTerrain() {
             terrain = [];
-            const roughness = 0.5;
-            let y = gameHeight * (2/3);
-            terrain.push({ x: 0, y: y });
-
-            const segmentCount = 100;
+            const roughness = 0.4;
+            // Terreno a 2/3 de la pantalla
+            let y = gameHeight * 0.7;
+            
+            const segmentCount = 60;
             const segmentWidth = gameWidth / segmentCount;
 
-            // Find a flat spot for the landing pad
-            const padIndex = Math.floor(Math.random() * (segmentCount - 14)) + 5; 
+            // Elegir plataforma de aterrizaje aleatoria
+            const padIndex = Math.floor(Math.random() * (segmentCount - 15)) + 5; 
             
+            terrain.push({ x: 0, y: y });
+
             for (let i = 1; i <= segmentCount; i++) {
-                if (i >= padIndex && i <= padIndex + 8) { 
-                    // Flat area for landing pad
+                if (i >= padIndex && i <= padIndex + 6) { 
+                    // Zona plana (Plataforma)
                     if (i === padIndex) {
                         landingPad.x = terrain[terrain.length - 1].x;
                         landingPad.y = y;
-                        landingPad.width = segmentWidth * 8; 
+                        landingPad.width = segmentWidth * 6; 
                     }
+                    terrain.push({ x: i * segmentWidth, y: y });
                 } else {
-                    // Introduce craters
-                    if (Math.random() < 0.05) { // 5% chance to start a crater
-                        const craterDepth = Math.random() * 40 + 20; // Depth between 20-60
-                        const craterWidth = Math.random() * 5 + 3; // Width in segments (3-8 segments wide)
-                        for (let j = 0; j < craterWidth; j++) {
-                            if (i + j < segmentCount) {
-                                let craterY = y + Math.sin(j / craterWidth * Math.PI) * craterDepth;
-                                // Clamp terrain height
-                                if (craterY > gameHeight - 50) craterY = gameHeight - 50;
-                                if (craterY < gameHeight / 2) craterY = gameHeight / 2;
-                                terrain.push({ x: (i + j) * segmentWidth, y: craterY });
-                            }
-                        }
-                        i += craterWidth - 1; // Skip ahead after creating crater
-                        y = terrain[terrain.length - 1].y; // Actualizar 'y' al final del cráter
-                        continue; // <-- ESTA ES LA CORRECCIÓN: Saltar el push de terreno principal
-                    } else {
-                        y += (Math.random() - 0.5) * segmentWidth * roughness;
-                    }
-                }
-                 // Clamp terrain height
-                if (y > gameHeight - 50) y = gameHeight - 50;
-                if (y < gameHeight / 2) y = gameHeight / 2;
+                    // Relieve escarpado
+                    y += (Math.random() - 0.5) * segmentWidth * roughness * 3;
+                    
+                    // Límites para evitar que salga de pantalla
+                    if (y > gameHeight - 30) y = gameHeight - 30;
+                    if (y < gameHeight / 2 + 50) y = gameHeight / 2 + 50;
 
-                if (i < segmentCount) { // Ensure we don't push extra points if crater generation went past boundary
                     terrain.push({ x: i * segmentWidth, y: y });
                 }
             }
-            // Ensure the last point reaches the edge if the loop ended early due to crater generation
-            if (terrain[terrain.length - 1].x < gameWidth) {
-                terrain.push({ x: gameWidth, y: terrain[terrain.length - 1].y });
+        }
+
+        function getTerrainYAt(x) {
+            if (x < 0) return terrain[0].y;
+            if (x > gameWidth) return terrain[terrain.length-1].y;
+            
+            for (let i = 0; i < terrain.length - 1; i++) {
+                const p1 = terrain[i];
+                const p2 = terrain[i + 1];
+                if (x >= p1.x && x <= p2.x) {
+                    // Interpolación lineal
+                    const t = (x - p1.x) / (p2.x - p1.x);
+                    return p1.y + t * (p2.y - p1.y);
+                }
             }
+            return gameHeight;
         }
 
         function checkCollisions() {
             if (lander.crashed || lander.landed) return;
             
-            // Basic screen bounds check
-            if (lander.x < 0 || lander.x > gameWidth) {
-                lander.vx = -lander.vx; // Bounce off sides
-            }
-
-            const landerPoints = [
-                { x: lander.x - lander.width / 2, y: lander.y + lander.height / 2 },
-                { x: lander.x + lander.width / 2, y: lander.y + lander.height / 2 },
-            ];
+            // Puntos de colisión de las patas (simplificado)
+            const leftLegX = lander.x - (lander.width/2 + 5) * Math.cos(lander.angle);
+            const leftLegY = lander.y + (lander.height/2 + 5) * Math.cos(lander.angle);
             
-            for (let i = 0; i < terrain.length - 1; i++) {
-                const p1 = terrain[i];
-                const p2 = terrain[i + 1];
+            const terrainY = getTerrainYAt(lander.x);
+            
+            // Colisión si la base de la nave cruza el terreno
+            if (lander.y + lander.height/2 + 5 >= terrainY) {
+                
+                const onPad = (lander.x > landingPad.x && lander.x < landingPad.x + landingPad.width);
+                const angleDeg = Math.abs(lander.angle * 180 / Math.PI);
+                const vSpeed = Math.abs(lander.vy);
+                const hSpeed = Math.abs(lander.vx);
 
-                // Simple collision: check if lander bottom points are below the terrain line segment
-                for (const point of landerPoints) {
-                    if (point.x >= p1.x && point.x <= p2.x) {
-                        const terrainY = p1.y + (p2.y - p1.y) * ((point.x - p1.x) / (p2.x - p1.x));
-                        if (point.y >= terrainY) {
-                            handleCollision(point.x > landingPad.x && point.x < landingPad.x + landingPad.width);
-                            return;
-                        }
+                if (onPad && vSpeed <= MAX_LANDING_VSPEED && hSpeed <= MAX_LANDING_HSPEED && angleDeg <= MAX_LANDING_ANGLE) {
+                    lander.landed = true;
+                    lander.vy = 0;
+                    lander.vx = 0;
+                    lander.angularVelocity = 0;
+                    lander.angle = 0;
+                    lander.y = terrainY - lander.height/2 - 5;
+                    endGame(true, vSpeed, hSpeed, angleDeg);
+                } else {
+                    lander.crashed = true;
+                    lander.parachuteDeployed = false; // Destruir paracaídas al chocar
+                    createExplosion(lander.x, lander.y);
+                    
+                    let failReason = "Fuera de plataforma.";
+                    if (onPad) {
+                        if (vSpeed > MAX_LANDING_VSPEED) failReason = `Mucho impacto vertical (${vSpeed.toFixed(1)} > ${MAX_LANDING_VSPEED}).`;
+                        else if (hSpeed > MAX_LANDING_HSPEED) failReason = `Desplazamiento lateral rápido (${hSpeed.toFixed(1)} > ${MAX_LANDING_HSPEED}).`;
+                        else if (angleDeg > MAX_LANDING_ANGLE) failReason = `Nave muy inclinada (${angleDeg.toFixed(1)}° > ${MAX_LANDING_ANGLE}°).`;
                     }
+                    endGame(false, vSpeed, hSpeed, angleDeg, failReason);
                 }
             }
         }
 
-        function handleCollision(onPad) {
+        function endGame(success, vSpeed, hSpeed, angleDeg, failReason = "") {
             gameOver = true;
-            const angleDeg = Math.abs(lander.angle * 180 / Math.PI);
+            attemptNumber++;
+            
+            const fuelRemaining = (lander.fuelMass).toFixed(1);
+            
+            // Registrar en historial
+            flightHistory.push({
+                attempt: attemptNumber,
+                vx: hSpeed.toFixed(2),
+                vy: vSpeed.toFixed(2),
+                angle: angleDeg.toFixed(1) + '°',
+                fuel: fuelRemaining + ' kg',
+                result: success ? '✅ Éxito' : '💥 Choque'
+            });
 
-            if (onPad && lander.vy < MAX_LANDING_VSPEED && Math.abs(lander.vx) < MAX_LANDING_HSPEED && angleDeg < MAX_LANDING_ANGLE) {
-                lander.landed = true;
-                lander.vy = 0;
-                lander.vx = 0;
-                lander.angle = 0;
-                showMessage('¡ATERRIZAJE EXITOSO!', `Velocidad vertical final: ${lander.vy.toFixed(2)} m/s`, '#0F0');
+            // Actualizar UI del Modal
+            ui.messageTitle.textContent = success ? "¡ATERRIZAJE SEGURO!" : "¡NAVE DESTRUIDA!";
+            ui.messageTitle.style.color = success ? "#0F0" : "#F00";
+            ui.messageSub.textContent = success ? "La tripulación está a salvo. Excelente gestión de energía." : failReason;
+
+            // Llenar tabla
+            ui.historyBody.innerHTML = "";
+            flightHistory.forEach(f => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${f.attempt}</td>
+                    <td>${f.vx}</td>
+                    <td>${f.vy}</td>
+                    <td>${f.angle}</td>
+                    <td>${f.fuel}</td>
+                    <td style="color: ${f.result.includes('Éxito') ? '#0F0' : '#F00'}">${f.result}</td>
+                `;
+                ui.historyBody.appendChild(tr);
+            });
+
+            setTimeout(() => { ui.messageBox.style.display = 'block'; }, 500);
+        }
+
+        function updateTelemetry() {
+            if(!lander) return;
+            
+            const currentGravity = parseFloat(ui.gravitySelect.value);
+            
+            // Altitud (Distancia vertical a la plataforma o suelo directo)
+            const terrenoAbajo = getTerrainYAt(lander.x);
+            // Convertir pixeles a metros para mostrar al usuario
+            let altitudReal = (terrenoAbajo - (lander.y + lander.height/2 + 5)) / PIXELS_PER_METER;
+            if (altitudReal < 0) altitudReal = 0;
+
+            ui.altitude.textContent = altitudReal.toFixed(1);
+            ui.hSpeed.textContent = (lander.vx).toFixed(2);
+            ui.vSpeed.textContent = (lander.vy).toFixed(2); // Invertimos visualmente (bajar es positivo)
+            
+            const angleDeg = (lander.angle * 180 / Math.PI) % 360;
+            ui.angle.textContent = angleDeg.toFixed(1);
+
+            // Cálculos Físicos Didácticos
+            ui.mass.textContent = (lander.totalMass).toFixed(0);
+            
+            // Ek = 1/2 * m * v^2
+            const velocitySquared = (lander.vx * lander.vx) + (lander.vy * lander.vy);
+            const kineticEnergy = 0.5 * lander.totalMass * velocitySquared;
+            
+            // Ep = m * g * h
+            const potentialEnergy = lander.totalMass * currentGravity * altitudReal;
+            
+            // Em = Ek + Ep
+            const mechanicEnergy = kineticEnergy + potentialEnergy;
+
+            // Mostrando en KiloJoules (kJ)
+            ui.kinEnergy.textContent = (kineticEnergy / 1000).toFixed(1);
+            ui.potEnergy.textContent = (potentialEnergy / 1000).toFixed(1);
+            ui.mecEnergy.textContent = (mechanicEnergy / 1000).toFixed(1);
+
+            // Barra de combustible
+            const fuelPercent = (lander.fuelMass / 500) * 100;
+            ui.fuelBar.style.width = `${fuelPercent}%`;
+            if (fuelPercent < 20) ui.fuelBar.style.backgroundColor = '#F00';
+            else if (fuelPercent < 50) ui.fuelBar.style.backgroundColor = '#FF0';
+            else ui.fuelBar.style.backgroundColor = '#0F0';
+            
+            // Estado Paracaídas UI
+            if (lander.parachuteDeployed) {
+                ui.parachuteStatus.textContent = "DESPLEGADO";
+                ui.parachuteStatus.style.color = "#FF5500";
             } else {
-                lander.crashed = true;
-                createExplosion(lander.x, lander.y);
-                showMessage('¡HAS CHOCADO!', 'Demasiado rápido o fuera de la plataforma', '#F00');
+                ui.parachuteStatus.textContent = "Guardado";
+                ui.parachuteStatus.style.color = "#aaa";
             }
-             subMessageTextEl.innerHTML += '<br><span>Presiona [R] para volver a intentarlo</span>';
         }
 
-        function showMessage(text, subtext, color) {
-            messageTextEl.textContent = text;
-            messageTextEl.style.color = color;
-            subMessageTextEl.textContent = subtext;
-            messageBoxEl.style.display = 'block';
-        }
-
-        function draw() {
-            // Clear canvas
+        function drawScene() {
             ctx.clearRect(0, 0, gameWidth, gameHeight);
             
-            // Draw Stars
-            drawStars();
+            // Detectar el planeta actual mediante el valor de gravedad
+            const currentGravity = parseFloat(ui.gravitySelect.value);
+            let planet = "moon";
+            if (currentGravity > 3.0 && currentGravity < 4.0) planet = "mars";
+            else if (currentGravity > 9.0) planet = "earth";
 
-            // Draw terrain
+            // Fondo / Cielo
+            if (planet === "earth") {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
+                skyGrad.addColorStop(0, '#2b78e4'); // Cielo azul profundo
+                skyGrad.addColorStop(1, '#87CEEB'); // Celeste en el horizonte
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, gameWidth, gameHeight);
+                
+                // Si la gravedad cambia durante el vuelo, cerramos el paracaídas si no es la tierra
+                if (lander && lander.parachuteDeployed && currentGravity !== 9.81) {
+                    lander.parachuteDeployed = false;
+                }
+            } else if (planet === "mars") {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
+                skyGrad.addColorStop(0, '#541c04'); // Naranja oscuro / Marrón
+                skyGrad.addColorStop(1, '#c1440e'); // Naranja polvo brillante
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, gameWidth, gameHeight);
+                if (lander) lander.parachuteDeployed = false; // Sin atmósfera densa
+            } else {
+                // Cielo / Estrellas estáticas (Espacio Lunar)
+                ctx.fillStyle = '#0a0a1a';
+                ctx.fillRect(0, 0, gameWidth, gameHeight);
+                ctx.fillStyle = '#ffffff';
+                for(let i=0; i<100; i++) {
+                    // Pseudo aleatorio basado en posición para que no parpadeen
+                    let sx = (Math.sin(i * 456) * 0.5 + 0.5) * gameWidth;
+                    let sy = (Math.cos(i * 123) * 0.5 + 0.5) * gameHeight;
+                    ctx.fillRect(sx, sy, 1, 1);
+                }
+                if (lander) lander.parachuteDeployed = false; // Sin atmósfera
+            }
+
+            // Terreno
             ctx.beginPath();
             ctx.moveTo(terrain[0].x, terrain[0].y);
             for (let i = 1; i < terrain.length; i++) {
@@ -464,119 +779,119 @@
             ctx.lineTo(gameWidth, gameHeight);
             ctx.lineTo(0, gameHeight);
             ctx.closePath();
-            ctx.fillStyle = '#666';
-            ctx.fill();
-            ctx.strokeStyle = '#999';
+            
+            // Gradiente del terreno según el planeta
+            const gradient = ctx.createLinearGradient(0, gameHeight*0.7, 0, gameHeight);
+            if (planet === "earth") {
+                gradient.addColorStop(0, '#3e9c31'); // Pasto verde
+                gradient.addColorStop(1, '#1a4f12');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = '#55c945'; // Borde claro para resaltar
+            } else if (planet === "mars") {
+                gradient.addColorStop(0, '#a63c11'); // Tierra marciana (rojo óxido)
+                gradient.addColorStop(1, '#591e06');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = '#d1531f';
+            } else {
+                gradient.addColorStop(0, '#555'); // Gris lunar
+                gradient.addColorStop(1, '#111');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = '#aaa';
+            }
+            
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Draw landing pad
-            ctx.fillStyle = '#0f0';
-            ctx.fillRect(landingPad.x, landingPad.y - 5, landingPad.width, 5);
-
-            // Draw particles
-            particles.forEach((p, index) => {
-                p.update();
-                p.draw();
-                if (p.life <= 0) {
-                    particles.splice(index, 1);
-                }
-            });
-
-            // Draw lander
-            lander.draw();
-        }
-
-        let stars = [];
-        function createStars() {
-            stars = [];
-            for(let i=0; i<200; i++) {
-                stars.push({
-                    x: Math.random() * gameWidth,
-                    y: Math.random() * gameHeight,
-                    radius: Math.random() * 1.5,
-                    alpha: Math.random()
-                });
-            }
-        }
-
-        function drawStars() {
-            stars.forEach(star => {
-                ctx.beginPath();
-                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${star.alpha})`;
-                ctx.fill();
-            });
-        }
-        
-        function updateUI() {
-            hSpeedEl.textContent = (lander.vx * 10).toFixed(2);
-            vSpeedEl.textContent = (lander.vy * 10).toFixed(2);
+            // Plataforma
+            // En la Tierra la hacemos gris (estilo concreto) para contrastar mejor con el pasto verde
+            ctx.fillStyle = planet === "earth" ? '#888' : '#0F0';
+            ctx.fillRect(landingPad.x, landingPad.y, landingPad.width, 6);
             
-            let lowestTerrainY = gameHeight;
-            for (let i = 0; i < terrain.length - 1; i++) {
-                const p1 = terrain[i];
-                const p2 = terrain[i + 1];
-                 if (lander.x >= p1.x && lander.x <= p2.x) {
-                    lowestTerrainY = p1.y + (p2.y - p1.y) * ((lander.x - p1.x) / (p2.x - p1.x));
-                    break;
+            // Textura plataforma
+            ctx.strokeStyle = planet === "earth" ? '#fff' : '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i=0; i<landingPad.width; i+=10) {
+                ctx.moveTo(landingPad.x + i, landingPad.y);
+                ctx.lineTo(landingPad.x + i + 5, landingPad.y + 6);
+            }
+            ctx.stroke();
+
+            // Dibujar Nave
+            if (lander) lander.draw();
+
+            // Dibujar Partículas
+            particles.forEach(p => p.draw());
+        }
+
+        function gameLoop(currentTime) {
+            // Delta time en segundos
+            let dt = (currentTime - previousTime) / 1000;
+            previousTime = currentTime;
+            
+            // Limitar dt para evitar saltos enormes (ej. cambiar de pestaña)
+            if (dt > 0.1) dt = 0.1;
+
+            if (!gameOver && lander) {
+                lander.update(dt);
+                checkCollisions();
+            }
+            
+            // Las partículas se actualizan aunque el juego termine
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update(dt);
+                if (particles[i].life <= 0) {
+                    particles.splice(i, 1);
                 }
             }
 
-            altitudeEl.textContent = Math.max(0, (lowestTerrainY - lander.y - lander.height/2)).toFixed(0);
-            angleEl.textContent = ((lander.angle * 180 / Math.PI) % 360).toFixed(0);
+            drawScene();
+            updateTelemetry();
             
-            const fuelPercent = (lander.fuel / 2000) * 100; 
-            fuelBarEl.style.width = `${fuelPercent}%`;
-            if (fuelPercent < 25) {
-                fuelBarEl.style.backgroundColor = '#f00';
-            } else if (fuelPercent < 50) {
-                 fuelBarEl.style.backgroundColor = '#ff0';
-            } else {
-                 fuelBarEl.style.backgroundColor = '#0f0';
-            }
-        }
-        
-        function gameLoop() {
-            // Reiniciar el estado de los propulsores en cada fotograma
-            if (lander) {
-                lander.thrusting = false;
-                lander.burningFuel = false;
-            }
-
-            handleInput();
-            lander.update();
-            checkCollisions();
-            draw();
-            updateUI();
-            
-            requestAnimationFrame(gameLoop);
+            animationFrameId = requestAnimationFrame(gameLoop);
         }
 
         function reset() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            
             gameWidth = window.innerWidth;
             gameHeight = window.innerHeight;
             canvas.width = gameWidth;
             canvas.height = gameHeight;
 
             generateTerrain();
-            createStars();
-            lander = new Lander(gameWidth / 2, 80);
+            
+            // Inicia en la parte superior izquierda, con velocidad horizontal
+            lander = new Lander(100, 100);
+            
             particles = [];
             gameOver = false;
-            
-            messageBoxEl.style.display = 'none';
-
+            ui.messageBox.style.display = 'none';
             keys = {};
+            
+            previousTime = performance.now();
+            gameLoop(previousTime);
         }
 
+        // Eventos
         window.addEventListener('keydown', (e) => {
-            // Inicia la música con la primera interacción del usuario
             tryStartMusic();
-
-            if (e.key === 'r' || e.key === 'R') {
+            
+            // Capturar la letra P para el Paracaídas
+            if (e.key === 'p' || e.key === 'P') {
+                const currentGravity = parseFloat(ui.gravitySelect.value);
+                // 9.81 es la Tierra. Permite abrir solo si no chocó
+                if (currentGravity === 9.81 && lander && !lander.crashed && !lander.landed) {
+                    lander.parachuteDeployed = true;
+                }
+            } 
+            else if (e.key === 'r' || e.key === 'R') {
                 reset();
-            } else {
+            } 
+            else {
                 keys[e.key] = true;
             }
         });
@@ -585,19 +900,16 @@
             keys[e.key] = false;
         });
 
-        // --- NUEVO LISTENER ---
-        // Agregamos un listener para 'mousedown' (clic) como otra forma
-        // de iniciar la música si la tecla falla.
         window.addEventListener('mousedown', () => {
             tryStartMusic();
         });
-        // ---------------------
 
-        window.addEventListener('resize', reset);
+        window.addEventListener('resize', () => {
+            if (!gameOver) reset();
+        });
 
-        // Start the game
+        // Iniciar
         reset();
-        gameLoop();
     </script>
 </body>
 </html>
