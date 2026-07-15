@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lander Sim - Físicas Avanzadas</title>
+    <title>Lander Sim - Físicas y Servicios de Emergencia Avanzados</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -253,14 +253,14 @@
                 bgMusic.play().then(() => {
                     musicStarted = true;
                 }).catch(error => {
-                    console.log("Esperando interacción del usuario para iniciar la música...");
+                    console.log("Esperando interacción del usuario...");
                 });
             }
         }
 
         let previousTime = performance.now();
         let animationFrameId;
-        let globalTime = 0; // Para animación de olas y efectos
+        let globalTime = 0; 
         
         let gameWidth, gameHeight;
         let lander;
@@ -272,34 +272,47 @@
         let attemptNumber = 0;
         let flightHistory = [];
 
+        // Animación de Servicios y Activos de Celebración
+        let activeHelicopters = [];
+        let activeAmbulances = [];
+        let activeBoats = [];
+        let rescueSoldiers = [];
+        let moonAstronaut = null;
+        let marsRover = null;
+        let animationTriggered = false;
+
         // Condiciones de aterrizaje
-        const MAX_LANDING_VSPEED = 2.0;  
-        const MAX_LANDING_HSPEED = 1.0;  
-        const MAX_LANDING_ANGLE = 5;     
+        const MAX_LANDING_VSPEED = 3.0;  
+        const MAX_LANDING_HSPEED = 1.5;  
+        const MAX_LANDING_ANGLE = 8;     
 
         ui.thrustRange.addEventListener('input', (e) => {
             ui.thrustDisplay.textContent = e.target.value;
         });
 
         class Particle {
-            constructor(x, y, type = 'fire') {
+            constructor(x, y, type = 'fire', vxOverride, vyOverride) {
                 this.x = x;
                 this.y = y;
                 this.type = type;
-                const angle = Math.random() * Math.PI * 2;
-                let speed = (Math.random() * 20 + 5); 
                 
                 if (type === 'splash') {
-                    // Salpicadura hacia arriba
-                    speed = Math.random() * 15 + 5;
-                    this.vx = (Math.random() - 0.5) * 10;
-                    this.vy = -Math.random() * speed; 
-                    this.life = Math.random() * 1.0 + 0.5;
-                    this.colors = ['#ffffff', '#87CEEB', '#4682B4'];
+                    this.vx = vxOverride !== undefined ? vxOverride : (Math.random() - 0.5) * 8;
+                    this.vy = vyOverride !== undefined ? vyOverride : -Math.random() * 12 - 3; 
+                    this.life = Math.random() * 1.0 + 0.4;
+                    this.colors = ['#ffffff', '#aadeff', '#4682B4'];
+                } else if (type === 'reentry') {
+                    // Chispas flotando hacia arriba debido a la caída de alta velocidad
+                    this.vx = (Math.random() - 0.5) * 6;
+                    this.vy = -Math.random() * 8 - 4;
+                    this.life = Math.random() * 0.8 + 0.3;
+                    this.colors = ['#ff3300', '#ffaa00', '#ffff00', '#ffeedd'];
                 } else {
+                    const angle = Math.random() * Math.PI * 2;
+                    let speed = (Math.random() * 20 + 5); 
                     this.vx = Math.cos(angle) * speed;
                     this.vy = Math.sin(angle) * speed;
-                    this.life = Math.random() * 1.5 + 0.5;
+                    this.life = Math.random() * 1.2 + 0.3;
                     this.colors = ['#ffcc00', '#ff5500', '#ff0000', '#888888', '#ffffff'];
                 }
                 
@@ -309,7 +322,9 @@
             }
             
             update(dt, gravity) {
-                this.vy += gravity * dt; 
+                if (this.type === 'splash') {
+                    this.vy += gravity * dt; 
+                }
                 this.x += this.vx * dt * PIXELS_PER_METER;
                 this.y += this.vy * dt * PIXELS_PER_METER;
                 this.life -= dt;
@@ -331,7 +346,9 @@
         }
 
         function createSplash(x, y) {
-            for (let i = 0; i < 40; i++) particles.push(new Particle(x, y, 'splash'));
+            for (let i = 0; i < 35; i++) {
+                particles.push(new Particle(x, y, 'splash'));
+            }
         }
 
         class DetachedParachute {
@@ -339,35 +356,29 @@
                 this.x = x;
                 this.y = y;
                 this.angle = angle;
-                this.type = type; // 'solid' o 'liquid'
+                this.type = type; 
                 this.waterLevelY = waterLevelY;
-                this.life = 0; // Tiempo transcurrido desde que se soltó
-                // Posición relativa de la tela del paracaídas respecto a la nave al soltarse
-                this.parachuteYOffset = -64; // -height - 40
+                this.life = 0;
+                this.parachuteYOffset = -64; 
             }
 
             update(dt) {
                 this.life += dt;
-                
-                // Efecto de desinfle/caída
                 if (this.type === 'solid') {
-                    // Cae al suelo y se aplasta a un lado
                     if (this.parachuteYOffset < 0) {
-                        this.parachuteYOffset += dt * 30; // Cae
-                        this.x += dt * 10; // Se desvía un poco con el viento
+                        this.parachuteYOffset += dt * 30; 
+                        this.x += dt * 10; 
                         this.angle += dt * 0.5;
                     }
                 } else if (this.type === 'liquid') {
-                    // Cae hasta tocar el agua y flota
                     const absoluteY = this.y + this.parachuteYOffset;
                     if (absoluteY < this.waterLevelY) {
                         this.parachuteYOffset += dt * 25;
                         this.x += dt * 5;
                     } else {
-                        // Flota y se mueve con las olas
                         this.y = this.waterLevelY; 
-                        this.parachuteYOffset = 0; // Ya está en el agua
-                        this.x += Math.sin(globalTime) * dt * 5; // Deriva suave
+                        this.parachuteYOffset = 0; 
+                        this.x += Math.sin(globalTime) * dt * 5; 
                     }
                 }
             }
@@ -377,14 +388,12 @@
                 ctx.translate(this.x, this.y + this.parachuteYOffset);
                 ctx.rotate(this.angle);
                 
-                // Transparencia al desinflarse
                 let alpha = Math.max(0.2, 0.85 - (this.life * 0.1));
                 
-                // Si está en el suelo, se aplasta visualmente
                 if (this.parachuteYOffset >= 0 && this.type === 'solid') {
-                    ctx.scale(1, 0.2); // Aplastado
+                    ctx.scale(1, 0.2); 
                 } else if (this.parachuteYOffset >= 0 && this.type === 'liquid') {
-                    ctx.scale(1.2, 0.3); // Flotando extendido
+                    ctx.scale(1.2, 0.3); 
                 }
 
                 ctx.beginPath();
@@ -395,6 +404,574 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
                 
+                ctx.restore();
+            }
+        }
+
+        class RescueHelicopter {
+            constructor(side, targetX, targetY) {
+                this.x = side === 'left' ? -100 : gameWidth + 100;
+                this.y = 100;
+                this.targetX = targetX;
+                this.targetY = targetY - 120; // Se queda flotando encima
+                this.speed = 120; // pixeles por seg
+                this.propellerAngle = 0;
+                this.state = 'flying'; // 'flying', 'hovering', 'deploying', 'departing'
+                this.timer = 0;
+                this.soldiersDeployed = false;
+            }
+
+            update(dt) {
+                this.propellerAngle += dt * 40;
+                
+                if (this.state === 'flying') {
+                    let dx = this.targetX - this.x;
+                    let dy = this.targetY - this.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 5) {
+                        this.state = 'hovering';
+                        this.timer = 0;
+                    } else {
+                        this.x += (dx / dist) * this.speed * dt;
+                        this.y += (dy / dist) * this.speed * dt;
+                    }
+                } else if (this.state === 'hovering') {
+                    this.timer += dt;
+                    // Balanceo ligero al flotar
+                    this.y += Math.sin(globalTime * 3) * 0.3;
+                    
+                    if (this.timer > 1.5 && !this.soldiersDeployed) {
+                        this.soldiersDeployed = true;
+                        // Desplegar soldados si estamos en Tierra
+                        if (ui.envSelect.value === 'earth') {
+                            rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 120));
+                            // Un segundo rescatista un poco después
+                            setTimeout(() => {
+                                if (gameOver && ui.envSelect.value === 'earth') {
+                                    rescueSoldiers.push(new RescueSoldier(this.x - 15, this.y + 10, this.targetY + 120));
+                                }
+                            }, 800);
+                        } else if (ui.envSelect.value === 'water') {
+                            // En agua bajan en canasta flotante
+                            rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 115, true));
+                        }
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Cuerda de descenso si está rescatando
+                if (this.state === 'hovering' && this.soldiersDeployed) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 10);
+                    ctx.lineTo(0, 120);
+                    ctx.strokeStyle = '#666';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                // Fuselaje del Helicóptero
+                ctx.fillStyle = '#1c3d1c'; // Verde militar
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Cabina (Ventana)
+                ctx.fillStyle = '#4ae';
+                ctx.beginPath();
+                ctx.arc(15, -2, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cola
+                ctx.beginPath();
+                ctx.moveTo(-20, 0);
+                ctx.lineTo(-45, -5);
+                ctx.lineTo(-45, -12);
+                ctx.lineTo(-40, 0);
+                ctx.fillStyle = '#1c3d1c';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+
+                // Hélice de Cola
+                ctx.save();
+                ctx.translate(-45, -8);
+                ctx.rotate(this.propellerAngle);
+                ctx.beginPath();
+                ctx.moveTo(-8, 0); ctx.lineTo(8, 0);
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+
+                // Hélice Principal (Rotando)
+                ctx.save();
+                ctx.translate(0, -14);
+                let rotorX = Math.cos(this.propellerAngle) * 35;
+                ctx.beginPath();
+                ctx.moveTo(-rotorX, 0);
+                ctx.lineTo(rotorX, 0);
+                ctx.strokeStyle = '#ccc';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+
+                // Soporte de Rotor
+                ctx.beginPath();
+                ctx.moveTo(0, -12);
+                ctx.lineTo(0, -6);
+                ctx.strokeStyle = '#555';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Patines de aterrizaje
+                ctx.beginPath();
+                ctx.moveTo(-15, 12); ctx.lineTo(-15, 17);
+                ctx.moveTo(15, 12); ctx.lineTo(15, 17);
+                ctx.moveTo(-22, 17); ctx.lineTo(22, 17);
+                ctx.strokeStyle = '#777';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Luz parpadeante
+                if (Math.floor(globalTime * 5) % 2 === 0) {
+                    ctx.beginPath();
+                    ctx.arc(-20, -5, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#f00';
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class RescueSoldier {
+            constructor(startX, startY, groundY, inBasket = false) {
+                this.x = startX;
+                this.y = startY;
+                this.groundY = groundY;
+                this.speed = 40; // velocidad de bajada
+                this.state = 'descending'; // 'descending', 'securing'
+                this.inBasket = inBasket;
+                this.walkOffset = 0;
+            }
+
+            update(dt) {
+                if (this.state === 'descending') {
+                    if (this.y < this.groundY - 12) {
+                        this.y += this.speed * dt;
+                    } else {
+                        this.state = 'securing';
+                    }
+                } else if (this.state === 'securing') {
+                    // Camina lentamente hacia la cápsula
+                    let targetX = lander.x + (this.x < lander.x ? -20 : 20);
+                    let dx = targetX - this.x;
+                    if (Math.abs(dx) > 2) {
+                        this.x += Math.sign(dx) * 15 * dt;
+                        this.walkOffset = Math.sin(globalTime * 10) * 2;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.inBasket) {
+                    // Canasta de rescate acuático
+                    ctx.strokeStyle = '#ffcc00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.rect(-8, -4, 16, 8);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(-8, -4); ctx.lineTo(0, -15);
+                    ctx.lineTo(8, -4);
+                    ctx.stroke();
+                }
+
+                // Dibujar Personaje (Soldado/Rescatista)
+                // Cabeza
+                ctx.fillStyle = '#ffcc99';
+                ctx.beginPath();
+                ctx.arc(0, -10 + this.walkOffset, 3, 0, Math.PI * 2);
+                ctx.fill();
+                // Casco
+                ctx.fillStyle = '#2d5a27';
+                ctx.beginPath();
+                ctx.arc(0, -11 + this.walkOffset, 3.5, Math.PI, 0);
+                ctx.fill();
+
+                // Cuerpo
+                ctx.fillStyle = '#3a6629';
+                ctx.fillRect(-3, -7 + this.walkOffset, 6, 8);
+
+                // Piernas/Botas
+                ctx.fillStyle = '#1f3a18';
+                ctx.fillRect(-3, 1 + this.walkOffset, 2, 4);
+                ctx.fillRect(1, 1 + this.walkOffset, 2, 4);
+
+                ctx.restore();
+            }
+        }
+
+        class RescueAmbulance {
+            constructor(side, targetX, groundY) {
+                this.x = side === 'left' ? -80 : gameWidth + 80;
+                this.y = groundY - 16;
+                this.targetX = targetX + (side === 'left' ? -55 : 55);
+                this.speed = 100;
+                this.side = side;
+                this.active = true;
+            }
+
+            update(dt) {
+                let dx = this.targetX - this.x;
+                if (Math.abs(dx) > 4) {
+                    this.x += Math.sign(dx) * this.speed * dt;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Sombra de vehículo
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(-22, 14, 44, 4);
+
+                // Chasis Ambulancia
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.roundRect(-20, -5, 40, 18, 3);
+                ctx.fill();
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Cabina (delante)
+                ctx.fillStyle = '#eee';
+                if (this.side === 'left') {
+                    ctx.fillRect(8, -5, 12, 10);
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(13, -3, 6, 5); // Ventana
+                } else {
+                    ctx.fillRect(-20, -5, 12, 10);
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(-19, -3, 6, 5); // Ventana
+                }
+
+                // Cruz Roja de Emergencias
+                ctx.fillStyle = '#f00';
+                ctx.fillRect(-3, 1, 6, 2);
+                ctx.fillRect(-1, -1, 2, 6);
+
+                // Ruedas
+                ctx.fillStyle = '#111';
+                ctx.beginPath();
+                ctx.arc(-12, 14, 4, 0, Math.PI * 2);
+                ctx.arc(12, 14, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Sirenas parpadeantes
+                if (Math.floor(globalTime * 8) % 2 === 0) {
+                    ctx.beginPath();
+                    ctx.arc(-5, -7, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#05f';
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(5, -7, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = '#f00';
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class RescueBoat {
+            constructor(side, targetX) {
+                this.x = side === 'left' ? -80 : gameWidth + 80;
+                this.targetX = targetX + (side === 'left' ? -45 : 45);
+                this.speed = 65;
+                this.side = side;
+                this.y = getWaterLevel(this.x);
+            }
+
+            update(dt) {
+                this.y = getWaterLevel(this.x) - 4;
+                let dx = this.targetX - this.x;
+                if (Math.abs(dx) > 5) {
+                    this.x += Math.sign(dx) * this.speed * dt;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                // Inclinación ligera simulando oleaje
+                let angle = Math.sin(this.x * 0.05 + globalTime * 3) * 0.1;
+                ctx.rotate(angle);
+
+                // Casco de la lancha salvavidas
+                ctx.fillStyle = '#ff4500'; // Naranja brillante de rescate marítimo
+                ctx.beginPath();
+                if (this.side === 'left') {
+                    ctx.moveTo(-18, -4);
+                    ctx.lineTo(10, -4);
+                    ctx.lineTo(20, 4);
+                    ctx.lineTo(-18, 4);
+                } else {
+                    ctx.moveTo(18, -4);
+                    ctx.lineTo(-10, -4);
+                    ctx.lineTo(-20, 4);
+                    ctx.lineTo(18, 4);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+
+                // Cabina pequeña / Motor
+                ctx.fillStyle = '#ddd';
+                ctx.fillRect(-10, -8, 8, 4);
+                ctx.fillStyle = '#111';
+                ctx.fillRect(-15, -12, 4, 8); // Motor Fuera de Borda
+
+                // Salvavidas pintado de lado
+                ctx.beginPath();
+                ctx.arc(0, 0, 3, 0, Math.PI*2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(0, 0, 1.5, 0, Math.PI*2);
+                ctx.fillStyle = '#ff4500';
+                ctx.fill();
+
+                // Bandera de rescate marítimo
+                ctx.beginPath();
+                ctx.moveTo(-12, -8); ctx.lineTo(-12, -20);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#f00';
+                ctx.beginPath();
+                ctx.moveTo(-12, -20); ctx.lineTo(-4, -17); ctx.lineTo(-12, -14);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        class MoonAstronaut {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.targetX = x + 35;
+                this.state = 'descending'; // 'descending', 'walking', 'flagging', 'saluting'
+                this.timer = 0;
+                this.walkCycle = 0;
+                this.flagPlanted = false;
+            }
+
+            update(dt) {
+                if (this.state === 'descending') {
+                    // Sale de la nave
+                    this.timer += dt;
+                    if (this.timer > 1.0) {
+                        this.state = 'walking';
+                    }
+                } else if (this.state === 'walking') {
+                    let dx = this.targetX - this.x;
+                    if (Math.abs(dx) > 1) {
+                        this.x += 10 * dt;
+                        this.walkCycle += 12 * dt;
+                    } else {
+                        this.state = 'flagging';
+                        this.timer = 0;
+                    }
+                } else if (this.state === 'flagging') {
+                    this.timer += dt;
+                    if (this.timer > 2.0) {
+                        this.flagPlanted = true;
+                        this.state = 'saluting';
+                    }
+                }
+            }
+
+            draw() {
+                // Dibujar Bandera si está colocada
+                if (this.flagPlanted) {
+                    ctx.save();
+                    ctx.translate(this.targetX + 12, this.y + 10);
+                    // Asta
+                    ctx.beginPath();
+                    ctx.moveTo(0, -30);
+                    ctx.lineTo(0, 2);
+                    ctx.strokeStyle = '#eee';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    // Bandera de la Federación / Científica
+                    ctx.fillStyle = '#0052cc';
+                    ctx.fillRect(0, -30, 20, 12);
+                    // Simbología (Círculo y estrella de exploración lunar)
+                    ctx.beginPath();
+                    ctx.arc(8, -24, 3, 0, Math.PI*2);
+                    ctx.fillStyle = '#fff';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                ctx.save();
+                ctx.translate(this.x, this.y + 10);
+
+                let bounceY = Math.abs(Math.sin(this.walkCycle)) * -2;
+                if (this.state === 'descending') {
+                    bounceY = -4; // Arriba en la escotilla
+                    ctx.globalAlpha = 0.5;
+                }
+
+                // Traje espacial (Blanco)
+                ctx.fillStyle = '#f0f0f0';
+                // Casco
+                ctx.beginPath();
+                ctx.arc(0, -12 + bounceY, 4, 0, Math.PI * 2);
+                ctx.fill();
+                // Visor Dorado
+                ctx.fillStyle = '#dfaa00';
+                ctx.beginPath();
+                ctx.arc(1, -12 + bounceY, 2, -Math.PI/2, Math.PI/2);
+                ctx.fill();
+
+                // Mochila de soporte vital (PLSS)
+                ctx.fillStyle = '#ccc';
+                ctx.fillRect(-5, -9 + bounceY, 3, 7);
+
+                // Cuerpo
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(-3, -8 + bounceY, 6, 8);
+
+                // Brazos (Saludando)
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                if (this.state === 'saluting') {
+                    // Brazo derecho levantado saludando
+                    ctx.beginPath();
+                    ctx.moveTo(3, -5 + bounceY);
+                    ctx.lineTo(8, -12 + bounceY);
+                    ctx.stroke();
+                } else {
+                    ctx.beginPath();
+                    ctx.moveTo(3, -5 + bounceY);
+                    ctx.lineTo(6, -2 + bounceY);
+                    ctx.stroke();
+                }
+
+                // Piernas
+                ctx.fillStyle = '#eee';
+                let legL = Math.sin(this.walkCycle) * 3;
+                let legR = -Math.sin(this.walkCycle) * 3;
+                if (this.state !== 'walking') { legL = 0; legR = 0; }
+                ctx.fillRect(-3, 0 + bounceY, 2, 4 + legL);
+                ctx.fillRect(1, 0 + bounceY, 2, 4 + legR);
+
+                ctx.restore();
+            }
+        }
+
+        class MarsRover {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y + 10;
+                this.targetX = x + 40;
+                this.state = 'unboarding'; // 'unboarding', 'driving'
+                this.timer = 0;
+                this.wheelRotation = 0;
+            }
+
+            update(dt) {
+                if (this.state === 'unboarding') {
+                    this.timer += dt;
+                    if (this.timer > 1.2) {
+                        this.state = 'driving';
+                    }
+                } else if (this.state === 'driving') {
+                    let dx = this.targetX - this.x;
+                    if (Math.abs(dx) > 1) {
+                        this.x += 12 * dt;
+                        this.wheelRotation += 8 * dt;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+
+                if (this.state === 'unboarding') {
+                    ctx.globalAlpha = 0.6;
+                }
+
+                // Sombra rover
+                ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                ctx.fillRect(-12, 10, 24, 3);
+
+                // Cuerpo Rover (Metálico / Dorado)
+                ctx.fillStyle = '#d4af37';
+                ctx.fillRect(-10, -3, 20, 8);
+                ctx.strokeStyle = '#555';
+                ctx.strokeRect(-10, -3, 20, 8);
+
+                // Panel Solar superior
+                ctx.fillStyle = '#000033';
+                ctx.fillRect(-12, -5, 24, 2);
+
+                // Mástil de Cámara
+                ctx.beginPath();
+                ctx.moveTo(4, -3);
+                ctx.lineTo(4, -14);
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                // Cámara / Sensor
+                ctx.fillStyle = '#111';
+                ctx.fillRect(2, -17, 5, 3);
+                ctx.beginPath();
+                ctx.arc(6, -15, 1, 0, Math.PI*2);
+                ctx.fillStyle = '#f00'; // Lente brillante
+                ctx.fill();
+
+                // Ruedas (Estructura de suspensión de 6 ruedas)
+                ctx.fillStyle = '#333';
+                const wheelPositions = [-8, 0, 8];
+                wheelPositions.forEach(wx => {
+                    ctx.save();
+                    ctx.translate(wx, 8);
+                    ctx.rotate(this.wheelRotation);
+                    ctx.beginPath();
+                    ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Detalle del rayo de la rueda
+                    ctx.beginPath();
+                    ctx.moveTo(-3, 0); ctx.lineTo(3, 0);
+                    ctx.moveTo(0, -3); ctx.lineTo(0, 3);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.restore();
+                });
+
                 ctx.restore();
             }
         }
@@ -436,14 +1013,11 @@
                 if (this.crashed || this.landed) {
                     if (this.detachedParachute) this.detachedParachute.update(dt);
                     
-                    // Si aterrizó en agua, hacerlo flotar suavemente con las olas
                     if (this.landed && this.inWater) {
                         const env = ENVIRONMENTS[ui.envSelect.value];
                         if (env.type === 'liquid') {
                             const targetY = getWaterLevel(this.x) - this.height/2 + 5;
-                            // Interpolación suave hacia el nivel del agua
                             this.y += (targetY - this.y) * dt * 5;
-                            // Balanceo suave
                             this.angle = Math.sin(globalTime * 2) * 0.05; 
                         }
                     }
@@ -489,28 +1063,21 @@
                     netTorque -= (this.angularVelocity * 10000); 
                 }
 
-                // --- NUEVO: Físicas de Acuatizaje (Flotabilidad y Arrastre en Agua) ---
+                // Físicas de Acuatizaje
                 if (env.type === 'liquid') {
                     const waterY = getWaterLevel(this.x);
                     const bottomY = this.y + this.height / 2;
                     
                     if (bottomY > waterY) {
                         this.inWater = true;
-                        // Calcular proporción sumergida (0 a 1)
                         const depth = bottomY - waterY;
                         const subFraction = Math.min(Math.max(depth / this.height, 0), 1.0);
-
-                        // Flotabilidad (Principio de Arquímedes)
-                        // Fuerza hacia arriba. La hacemos un 20% mayor al peso para asegurar que flote
                         const buoyancyForce = (this.totalMass * currentGravity * 1.2) * subFraction;
                         forceY -= buoyancyForce;
 
-                        // Arrastre Hidrodinámico (Resistencia viscosa muy alta)
                         const waterDrag = 25000 * subFraction;
-                        // Opone resistencia a la velocidad actual
                         forceY -= waterDrag * this.vy * Math.abs(this.vy);
                         forceX -= waterDrag * this.vx * Math.abs(this.vx);
-                        // Amortigua rotación en el agua
                         netTorque -= (this.angularVelocity * 30000) * subFraction;
                     } else {
                         this.inWater = false;
@@ -527,7 +1094,7 @@
                 this.vx += ax * dt;
                 this.vy += ay * dt;
                 this.angularVelocity += alpha * dt;
-                this.angularVelocity *= 0.99; // Fricción espacial/aire base
+                this.angularVelocity *= 0.99; 
 
                 this.x += this.vx * dt * PIXELS_PER_METER;
                 this.y += this.vy * dt * PIXELS_PER_METER;
@@ -535,13 +1102,40 @@
 
                 if (this.x < 0) this.x = gameWidth;
                 if (this.x > gameWidth) this.x = 0;
+
+                // --- EFECTO DE INCENDIO POR ALTA VELOCIDAD EN AMBIENTES CON ATMOSFERA ---
+                if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
+                    // Genera partículas de reentrada
+                    for (let i = 0; i < 3; i++) {
+                        // Posiciona las chispas en la base inferior de la cápsula
+                        particles.push(new Particle(
+                            this.x + (Math.random() - 0.5) * this.width,
+                            this.y + this.height/2,
+                            'reentry'
+                        ));
+                    }
+                }
             }
 
             draw() {
-                // Dibujar paracaídas suelto si existe
                 if (this.detachedParachute) this.detachedParachute.draw();
 
                 if (this.crashed) return;
+
+                // --- EFECTO REENTRY PLASMA GLOW ---
+                if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
+                    ctx.save();
+                    ctx.translate(this.x, this.y);
+                    // Brillo en forma de arco apuntando hacia abajo en la dirección de la caída
+                    let glowIntensity = Math.min((this.vy - 12) / 10, 1.0);
+                    ctx.beginPath();
+                    ctx.arc(0, this.height/2 - 2, this.width, 0, Math.PI);
+                    ctx.fillStyle = `rgba(255, 90, 0, ${glowIntensity * 0.4})`;
+                    ctx.shadowColor = '#ff3300';
+                    ctx.shadowBlur = 15;
+                    ctx.fill();
+                    ctx.restore();
+                }
 
                 ctx.save();
                 ctx.translate(this.x, this.y);
@@ -687,7 +1281,6 @@
 
         function getWaterLevel(x) {
             const baseLevel = gameHeight * 0.7;
-            // Ecuación de ondas compuestas para simular oleaje
             const wave1 = Math.sin(x * 0.015 + globalTime * 2) * 8;
             const wave2 = Math.cos(x * 0.03 + globalTime * 3) * 4;
             return baseLevel + wave1 + wave2;
@@ -713,17 +1306,18 @@
                         lander.vy = 0; lander.vx = 0; lander.angularVelocity = 0; lander.angle = 0;
                         lander.y = terrainY - lander.height/2 - 5;
                         lander.detachParachute('solid');
+                        triggerSuccessAnimation();
                         endGame(true, vSpeed, hSpeed, angleDeg, "Aterrizaje perfecto en la plataforma.");
                     } else {
                         lander.crashed = true;
                         lander.parachuteDeployed = false; 
                         createExplosion(lander.x, lander.y);
                         
-                        let reason = "Fuera de plataforma.";
+                        let reason = "Fuera de plataforma de aterrizaje.";
                         if (onPad) {
-                            if (vSpeed > MAX_LANDING_VSPEED) reason = `Impacto vertical (${vSpeed.toFixed(1)} m/s).`;
-                            else if (hSpeed > MAX_LANDING_HSPEED) reason = `Desplazamiento lateral (${hSpeed.toFixed(1)} m/s).`;
-                            else if (angleDeg > MAX_LANDING_ANGLE) reason = `Inclinación excesiva (${angleDeg.toFixed(1)}°).`;
+                            if (vSpeed > MAX_LANDING_VSPEED) reason = `Impacto vertical excesivo (${vSpeed.toFixed(1)} m/s).`;
+                            else if (hSpeed > MAX_LANDING_HSPEED) reason = `Desplazamiento lateral muy alto (${hSpeed.toFixed(1)} m/s).`;
+                            else if (angleDeg > MAX_LANDING_ANGLE) reason = `Inclinación destructiva (${angleDeg.toFixed(1)}°).`;
                         }
                         endGame(false, vSpeed, hSpeed, angleDeg, reason);
                     }
@@ -731,12 +1325,10 @@
             } else if (env.type === 'liquid') {
                 const waterY = getWaterLevel(lander.x);
                 
-                // Detección de impacto inicial con el agua
                 if (bottomY >= waterY && !lander.inWaterWasDetected) {
-                    lander.inWaterWasDetected = true; // Flag para evaluar solo el impacto inicial
+                    lander.inWaterWasDetected = true; 
                     
-                    // El agua tolera un poco más de velocidad, pero no demasiada
-                    if (vSpeed > MAX_LANDING_VSPEED * 3 || hSpeed > MAX_LANDING_HSPEED * 3 || angleDeg > MAX_LANDING_ANGLE * 4) {
+                    if (vSpeed > MAX_LANDING_VSPEED * 2.5 || hSpeed > MAX_LANDING_HSPEED * 2.5 || angleDeg > MAX_LANDING_ANGLE * 3) {
                         lander.crashed = true;
                         lander.parachuteDeployed = false;
                         createExplosion(lander.x, waterY);
@@ -744,17 +1336,39 @@
                         endGame(false, vSpeed, hSpeed, angleDeg, "Impacto violento contra el océano.");
                         return;
                     } else {
-                        // Impacto suave, genera salpicadura pero sobrevive
                         createSplash(lander.x, waterY);
                     }
                 }
 
-                // Condición de acuatizaje exitoso (estabilización en el agua)
-                if (lander.inWater && vSpeed < 0.2 && hSpeed < 0.2) {
+                if (lander.inWater && vSpeed < 0.25 && hSpeed < 0.25) {
                     lander.landed = true;
                     lander.detachParachute('liquid');
-                    endGame(true, vSpeed, hSpeed, angleDeg, "Acuatizaje exitoso. Cápsula flotando.");
+                    triggerSuccessAnimation();
+                    endGame(true, vSpeed, hSpeed, angleDeg, "Acuatizaje exitoso. Cápsula estabilizada flotando.");
                 }
+            }
+        }
+
+        function triggerSuccessAnimation() {
+            if (animationTriggered) return;
+            animationTriggered = true;
+
+            const envKey = ui.envSelect.value;
+            if (envKey === 'water') {
+                // Envía servicios de emergencia marítimos
+                activeBoats.push(new RescueBoat('left', lander.x));
+                activeBoats.push(new RescueBoat('right', lander.x));
+                activeHelicopters.push(new RescueHelicopter('right', lander.x, lander.y));
+            } else if (envKey === 'earth') {
+                // Envía servicios de emergencia terrestres
+                activeAmbulances.push(new RescueAmbulance('left', lander.x, getTerrainYAt(lander.x)));
+                activeHelicopters.push(new RescueHelicopter('left', lander.x, lander.y));
+            } else if (envKey === 'moon') {
+                // Despliega astronauta con bandera
+                moonAstronaut = new MoonAstronaut(lander.x, lander.y);
+            } else if (envKey === 'mars') {
+                // Despliega Mars Rover
+                marsRover = new MarsRover(lander.x, lander.y);
             }
         }
 
@@ -790,7 +1404,8 @@
                 ui.historyBody.appendChild(tr);
             });
 
-            setTimeout(() => { ui.messageBox.style.display = 'block'; }, 800);
+            // Dar tiempo extra para disfrutar de las animaciones antes de mostrar los controles/historial
+            setTimeout(() => { ui.messageBox.style.display = 'block'; }, success ? 4000 : 1200);
         }
 
         function updateTelemetry() {
@@ -805,7 +1420,7 @@
             }
             
             let altitudReal = (superficieAbajo - (lander.y + lander.height/2 + 5)) / PIXELS_PER_METER;
-            if (altitudReal < 0 && env.type === 'solid') altitudReal = 0; // En agua puede ser negativo (sumergido)
+            if (altitudReal < 0 && env.type === 'solid') altitudReal = 0; 
 
             ui.altitude.textContent = altitudReal.toFixed(1);
             ui.hSpeed.textContent = (lander.vx).toFixed(2);
@@ -849,27 +1464,29 @@
             const env = ENVIRONMENTS[envKey];
 
             // 1. Fondos / Cielo
-            if (env.hasAtmosphere) {
+            if (envKey === 'earth' || envKey === 'water') {
                 const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
-                skyGrad.addColorStop(0, '#2b78e4'); 
+                skyGrad.addColorStop(0, '#102e5c'); 
+                skyGrad.addColorStop(0.5, '#2b78e4'); 
                 skyGrad.addColorStop(1, '#87CEEB'); 
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
             } else if (envKey === 'mars') {
                 const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
                 skyGrad.addColorStop(0, '#541c04'); 
-                skyGrad.addColorStop(1, '#c1440e'); 
+                skyGrad.addColorStop(0.7, '#c1440e'); 
+                skyGrad.addColorStop(1, '#e27b4b'); 
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
             } else {
                 // Luna / Espacio
-                ctx.fillStyle = '#0a0a1a';
+                ctx.fillStyle = '#050512';
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
                 ctx.fillStyle = '#ffffff';
-                for(let i=0; i<100; i++) {
+                for(let i=0; i<80; i++) {
                     let sx = (Math.sin(i * 456) * 0.5 + 0.5) * gameWidth;
                     let sy = (Math.cos(i * 123) * 0.5 + 0.5) * gameHeight;
-                    ctx.fillRect(sx, sy, 1, 1);
+                    ctx.fillRect(sx, sy, 1.5, 1.5);
                 }
             }
 
@@ -885,16 +1502,16 @@
                 const gradient = ctx.createLinearGradient(0, gameHeight*0.7, 0, gameHeight);
                 if (envKey === 'earth') {
                     gradient.addColorStop(0, '#3e9c31'); 
-                    gradient.addColorStop(1, '#1a4f12');
+                    gradient.addColorStop(1, '#13350c');
                     ctx.strokeStyle = '#55c945'; 
                 } else if (envKey === 'mars') {
                     gradient.addColorStop(0, '#a63c11'); 
-                    gradient.addColorStop(1, '#591e06');
+                    gradient.addColorStop(1, '#3b1404');
                     ctx.strokeStyle = '#d1531f';
                 } else {
-                    gradient.addColorStop(0, '#555'); 
+                    gradient.addColorStop(0, '#444'); 
                     gradient.addColorStop(1, '#111');
-                    ctx.strokeStyle = '#aaa';
+                    ctx.strokeStyle = '#888';
                 }
                 ctx.fillStyle = gradient;
                 ctx.fill();
@@ -902,10 +1519,10 @@
                 ctx.stroke();
 
                 // Plataforma
-                ctx.fillStyle = envKey === 'earth' ? '#888' : '#0F0';
+                ctx.fillStyle = envKey === 'earth' ? '#555' : '#0F0';
                 ctx.fillRect(landingPad.x, landingPad.y, landingPad.width, 6);
                 ctx.strokeStyle = envKey === 'earth' ? '#fff' : '#000';
-                ctx.lineWidth = 1;
+                ctx.lineWidth = 1.5;
                 ctx.beginPath();
                 for(let i=0; i<landingPad.width; i+=10) {
                     ctx.moveTo(landingPad.x + i, landingPad.y);
@@ -916,31 +1533,41 @@
                 // Océano Animado
                 ctx.beginPath();
                 ctx.moveTo(0, gameHeight);
-                for (let x = 0; x <= gameWidth; x += 10) {
+                for (let x = 0; x <= gameWidth; x += 8) {
                     ctx.lineTo(x, getWaterLevel(x));
                 }
                 ctx.lineTo(gameWidth, gameHeight);
                 ctx.closePath();
                 
                 const waterGrad = ctx.createLinearGradient(0, gameHeight * 0.7, 0, gameHeight);
-                waterGrad.addColorStop(0, 'rgba(30, 144, 255, 0.85)'); // DodgerBlue
-                waterGrad.addColorStop(1, 'rgba(0, 0, 128, 0.95)');    // Navy
+                waterGrad.addColorStop(0, 'rgba(25, 115, 220, 0.9)'); 
+                waterGrad.addColorStop(1, 'rgba(0, 0, 80, 0.98)');    
                 
                 ctx.fillStyle = waterGrad;
                 ctx.fill();
                 
-                // Cresteo de olas (efecto visual superficial)
+                // Cresteo blanco de olas
                 ctx.beginPath();
-                for (let x = 0; x <= gameWidth; x += 15) {
-                    const y = getWaterLevel(x);
-                    ctx.lineTo(x, y);
+                for (let x = 0; x <= gameWidth; x += 12) {
+                    ctx.lineTo(x, getWaterLevel(x));
                 }
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
             }
 
+            // 3. Dibujar Vehículos de Animación Activa
+            activeBoats.forEach(boat => boat.draw());
+            activeAmbulances.forEach(amb => amb.draw());
+            rescueSoldiers.forEach(soldier => soldier.draw());
+            activeHelicopters.forEach(cop => cop.draw());
+            if (moonAstronaut) moonAstronaut.draw();
+            if (marsRover) marsRover.draw();
+
+            // 4. Dibujar nave principal
             if (lander) lander.draw();
+            
+            // 5. Partículas
             particles.forEach(p => p.draw());
         }
 
@@ -951,7 +1578,6 @@
             
             globalTime += dt;
 
-            // Restricción de paracaídas si se cambia de entorno en vuelo
             if (lander && lander.parachuteDeployed) {
                 const env = ENVIRONMENTS[ui.envSelect.value];
                 if (!env.hasAtmosphere) lander.parachuteDeployed = false;
@@ -961,12 +1587,19 @@
                 lander.update(dt);
                 checkCollisions();
             } else if (gameOver && lander) {
-                // Seguir actualizando si acuatizó para que flote con las olas
                 if (lander.landed && lander.inWater) {
                     lander.update(dt);
                 }
             }
             
+            // Actualizar entidades especiales post-aterrizaje
+            activeHelicopters.forEach(cop => cop.update(dt));
+            activeAmbulances.forEach(amb => amb.update(dt));
+            activeBoats.forEach(boat => boat.update(dt));
+            rescueSoldiers.forEach(soldier => soldier.update(dt));
+            if (moonAstronaut) moonAstronaut.update(dt);
+            if (marsRover) marsRover.update(dt);
+
             const currentGravity = ENVIRONMENTS[ui.envSelect.value].gravity;
             for (let i = particles.length - 1; i >= 0; i--) {
                 particles[i].update(dt, currentGravity);
@@ -992,6 +1625,15 @@
             gameOver = false;
             ui.messageBox.style.display = 'none';
             keys = {};
+
+            // Reiniciar Assets de Animación
+            activeHelicopters = [];
+            activeAmbulances = [];
+            activeBoats = [];
+            rescueSoldiers = [];
+            moonAstronaut = null;
+            marsRover = null;
+            animationTriggered = false;
             
             previousTime = performance.now();
             gameLoop(previousTime);
@@ -1012,11 +1654,7 @@
         });
 
         window.addEventListener('keyup', (e) => keys[e.key] = false);
-        
-        window.addEventListener('mousedown', () => {
-            tryStartMusic();
-        });
-        
+        window.addEventListener('mousedown', () => { tryStartMusic(); });
         window.addEventListener('resize', () => { if (!gameOver) reset(); });
 
         reset();
