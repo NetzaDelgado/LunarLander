@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LunarLander Sim - 2026 @NetzaDelgado</title>
+    <title>Lander Sim - Logros y Servicios de Emergencia Avanzados</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -23,7 +23,7 @@
         }
         .ui-panel {
             position: absolute;
-            background: rgba(0, 15, 0, 0.75);
+            background: rgba(0, 15, 0, 0.82);
             border: 1px solid #0F0;
             border-radius: 8px;
             color: #0F0;
@@ -35,7 +35,7 @@
             top: 20px;
             left: 20px;
             padding: 15px;
-            min-width: 280px;
+            min-width: 290px;
             font-size: 0.9em;
         }
         .info-panel h2 {
@@ -55,6 +55,7 @@
             top: 20px;
             right: 20px;
             padding: 15px;
+            width: 260px;
         }
         select, input[type="range"] {
             background: #000;
@@ -76,26 +77,27 @@
             border: 2px solid #0F0;
             text-align: center;
             display: none;
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 90%;
+            width: 600px;
+            max-height: 85vh;
             overflow-y: auto;
             box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
             z-index: 50;
         }
         .message-box h1 {
-            font-size: 2.5em;
+            font-size: 2.3em;
             margin: 0 0 10px 0;
             text-shadow: 0 0 10px currentColor;
         }
         .history-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
-            font-size: 0.85em;
+            margin-top: 15px;
+            font-size: 0.8em;
         }
         .history-table th, .history-table td {
             border: 1px solid #0F0;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
         }
         .fuel-bar-container {
@@ -119,7 +121,7 @@
             transform: translateX(-50%);
             color: #aaa;
             font-size: 0.85em;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.7);
             padding: 10px 20px;
             border-radius: 5px;
             border: 1px dashed #555;
@@ -127,30 +129,165 @@
             pointer-events: none;
             z-index: 10;
         }
-        .btn-restart {
-            margin-top: 20px;
+        .btn-action {
             background: #0F0;
             color: #000;
             border: none;
-            padding: 10px 20px;
-            font-size: 1.2em;
+            padding: 8px 16px;
+            font-size: 1em;
             cursor: pointer;
             font-weight: bold;
             font-family: inherit;
             transition: all 0.2s;
+            border-radius: 4px;
         }
-        .btn-restart:hover {
+        .btn-action:hover {
             background: #fff;
             box-shadow: 0 0 15px #0F0;
         }
         .metric-value {
             font-weight: bold;
         }
+
+        /* --- Estilos Nuevos para Logros --- */
+        .achievements-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(5, 5, 15, 0.96);
+            border: 2px solid #0F0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: none;
+            flex-direction: column;
+            z-index: 60;
+            box-shadow: 0 0 35px rgba(0, 255, 0, 0.4);
+            color: #0F0;
+            padding: 20px;
+        }
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-top: 15px;
+        }
+        .achievement-card {
+            border: 1px solid #333;
+            background: rgba(0, 10, 0, 0.5);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.25s ease;
+        }
+        .achievement-card.unlocked {
+            border-color: #0F0;
+            background: rgba(0, 30, 0, 0.4);
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
+        }
+        .achievement-card.locked {
+            filter: grayscale(1) opacity(0.4);
+        }
+        .achievement-card.locked:hover {
+            filter: grayscale(0.8) opacity(0.6);
+        }
+        .achievement-icon {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px dashed #0F0;
+            border-radius: 50%;
+        }
+        .achievement-card.locked .achievement-icon {
+            border-color: #555;
+            background: rgba(50, 50, 50, 0.1);
+        }
+        .achievement-info h4 {
+            margin: 0;
+            font-size: 0.85em;
+            color: #fff;
+            font-weight: bold;
+        }
+        .achievement-info .nickname {
+            font-size: 0.7em;
+            color: #0F0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+        .achievement-info p {
+            margin: 0;
+            font-size: 0.7em;
+            color: #aaa;
+        }
+
+        /* Notificación emergente */
+        .toast-container {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .achievement-toast {
+            background: rgba(0, 25, 0, 0.95);
+            border: 2px solid #0F0;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+            width: 320px;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease 4.5s forwards;
+            pointer-events: auto;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); pointer-events: none; }
+        }
+        
+        /* Personalización de scrollbar retro */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #0F0;
+            border-radius: 3px;
+        }
     </style>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
+
+    <!-- Botón de apertura de Logros permanente -->
+    <div style="position: absolute; bottom: 20px; right: 20px; z-index: 15;">
+        <button class="btn-action" onclick="toggleAchievementsMenu()" style="background: #0a0a1a; color: #0F0; border: 1px solid #0F0; box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);">
+            LOGROS 🏆 <span id="achievementsBtnCount">(0/15)</span>
+        </button>
+    </div>
 
     <div class="ui-panel info-panel">
         <h2>TELEMETRÍA</h2>
@@ -188,6 +325,19 @@
     <div id="messageBox" class="message-box">
         <h1 id="messageTitle">RESULTADO</h1>
         <p id="messageSub"></p>
+        
+        <!-- Vista resumida de logros en esta pantalla -->
+        <div id="summaryAchievements" class="my-4 p-3 border border-green-800 rounded bg-black/40 text-left">
+            <h3 class="text-sm font-bold text-green-400 mb-1 border-b border-green-900 pb-1">Progreso General de Logros:</h3>
+            <div class="flex justify-between items-center text-xs text-white">
+                <span>Desbloqueados en este dispositivo:</span>
+                <span id="achievementSummaryProgress" class="font-bold text-green-400">0 / 15</span>
+            </div>
+            <div class="w-full bg-zinc-900 h-2 rounded mt-1 overflow-hidden border border-zinc-800">
+                <div id="achievementSummaryProgressBar" class="h-full bg-green-500" style="width: 0%"></div>
+            </div>
+        </div>
+
         <table class="history-table">
             <thead>
                 <tr>
@@ -201,8 +351,43 @@
             </thead>
             <tbody id="historyBody"></tbody>
         </table>
-        <button class="btn-restart" onclick="reset()">Volver a Intentar (R)</button>
+        
+        <div class="flex gap-4 justify-center mt-6">
+            <button class="btn-action" onclick="reset()">Volver a Intentar (R)</button>
+            <button class="btn-action" style="background: #002200; color: #0F0; border: 1px solid #0F0;" onclick="toggleAchievementsMenu()">Consultar Logros 🏆</button>
+        </div>
     </div>
+
+    <!-- Ventana emergente interactiva de LOGROS -->
+    <div id="achievementsPanel" class="achievements-panel">
+        <div class="flex justify-between items-center border-b border-green-500 pb-3">
+            <h2 class="text-xl font-bold text-white tracking-widest flex items-center gap-2">
+                🏆 REGISTRO DE LOGROS DE VUELO
+            </h2>
+            <button onclick="toggleAchievementsMenu()" class="text-red-500 hover:text-white font-bold px-3 py-1 border border-red-500 rounded hover:bg-red-900 transition">
+                CERRAR [X]
+            </button>
+        </div>
+        
+        <div class="my-3 flex justify-between items-center text-xs px-2 bg-green-950/30 p-2 rounded border border-green-900/50">
+            <span>Comandante, aquí se guardan de manera permanente tus condecoraciones físicas.</span>
+            <span class="font-bold text-white">PROGRESO: <span id="achievementsPanelCount" class="text-green-400">0/15</span></span>
+        </div>
+
+        <!-- Rejilla con los 15 Logros -->
+        <div id="achievementGrid" class="achievement-grid">
+            <!-- Los logros se renderizan aquí dinámicamente con JS -->
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-zinc-800 text-center">
+            <button class="btn-action text-xs" style="background: #900; color: white;" onclick="confirmResetAchievements()">
+                REESTABLECER LOGROS Y HISTORIAL (BORRAR)
+            </button>
+        </div>
+    </div>
+
+    <!-- Contenedor dinámico de notificaciones de logros -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <div class="controls-hint">
         [↑] Motor | [←] [→] RCS | [P] Paracaídas (Atmosférico) | [R] Reiniciar<br>
@@ -230,17 +415,24 @@
             thrustRange: document.getElementById('thrustRange'),
             thrustDisplay: document.getElementById('thrustDisplay'),
             historyBody: document.getElementById('historyBody'),
-            parachuteStatus: document.getElementById('parachuteStatus')
+            parachuteStatus: document.getElementById('parachuteStatus'),
+            achievementsBtnCount: document.getElementById('achievementsBtnCount'),
+            achievementsPanelCount: document.getElementById('achievementsPanelCount'),
+            achievementGrid: document.getElementById('achievementGrid'),
+            achievementsPanel: document.getElementById('achievementsPanel'),
+            toastContainer: document.getElementById('toastContainer'),
+            achievementSummaryProgress: document.getElementById('achievementSummaryProgress'),
+            achievementSummaryProgressBar: document.getElementById('achievementSummaryProgressBar')
         };
 
         const PIXELS_PER_METER = 3; 
 
         // Definición de Entornos
         const ENVIRONMENTS = {
-            'moon': { gravity: 1.62, hasAtmosphere: false, type: 'solid' },
-            'mars': { gravity: 3.71, hasAtmosphere: false, type: 'solid' },
-            'earth': { gravity: 9.81, hasAtmosphere: true, type: 'solid' },
-            'water': { gravity: 9.81, hasAtmosphere: true, type: 'liquid' }
+            'moon': { gravity: 1.62, hasAtmosphere: false, type: 'solid', name: 'LUNA' },
+            'mars': { gravity: 3.71, hasAtmosphere: false, type: 'solid', name: 'MARTE' },
+            'earth': { gravity: 9.81, hasAtmosphere: true, type: 'solid', name: 'TIERRA' },
+            'water': { gravity: 9.81, hasAtmosphere: true, type: 'liquid', name: 'OCÉANO' }
         };
 
         // --- Música de fondo ---
@@ -253,9 +445,43 @@
                 bgMusic.play().then(() => {
                     musicStarted = true;
                 }).catch(error => {
-                    console.log("Esperando interacción del usuario...");
+                    console.log("Esperando interacción del usuario para audio...");
                 });
             }
+        }
+
+        // --- Sintetizador de Sonidos Retro (Web Audio API) ---
+        let audioCtx = null;
+        function playSynthBeep(freq, type, duration) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = type || 'sine';
+                osc.frequency.value = freq || 440;
+                
+                gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Audio sin inicializar.");
+            }
+        }
+
+        function playAchievementUnlockedSound() {
+            // Melodía victoriosa futurista corta
+            playSynthBeep(523.25, 'triangle', 0.15); // C5
+            setTimeout(() => playSynthBeep(659.25, 'triangle', 0.15), 100); // E5
+            setTimeout(() => playSynthBeep(783.99, 'triangle', 0.15), 200); // G5
+            setTimeout(() => playSynthBeep(1046.50, 'sawtooth', 0.4), 300); // C6 (agudo metálico)
         }
 
         let previousTime = performance.now();
@@ -286,6 +512,244 @@
         const MAX_LANDING_HSPEED = 1.5;  
         const MAX_LANDING_ANGLE = 8;     
 
+        // --- STREAMING_CHUNK: Definiendo la Estructura y Metadata de los 15 Logros Solicitados ---
+        const ACHIEVEMENTS_DATA = [
+            {
+                id: "landing_moon",
+                title: "Aterriza exitosamente en la LUNA",
+                nickname: "Apolo Moderno",
+                description: "Haz contacto suave con la superficie gris del satélite lunar.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-300 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79 2.15.84 4.42.36 6.13-.93.58 1.43 1.83 2.5 3.39 2.86.17.65.27 1.32.27 2.03 0 2.45-1.16 4.62-3 6.03z"/></svg>`
+            },
+            {
+                id: "landing_mars",
+                title: "Aterriza exitosamente en MARTE",
+                nickname: "Espíritu de Curiosity",
+                description: "Deposita las patas del módulo espacial en el regolito rojo marciano.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-orange-500 fill-current"><circle cx="12" cy="12" r="10"/><path fill="#3a1100" d="M12 4a8 8 0 0 0-8 8c0 1.25.29 2.43.8 3.5a6 6 0 0 1 11.4 0c.51-1.07.8-2.25.8-3.5a8 8 0 0 0-8-8z"/></svg>`
+            },
+            {
+                id: "landing_earth_no_chute",
+                title: "Aterriza exitosamente en TIERRA sin paracaídas",
+                nickname: "Estilo Falcon 9",
+                description: "Regresa a la base de la Tierra confiando únicamente en la retropropulsión.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-blue-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2L9 9h6l-3-7zm-3 7v8h6V9H9zm-3 8h12M12 17v5"/></svg>`
+            },
+            {
+                id: "landing_earth_chute",
+                title: "Aterriza exitosamente en TIERRA con paracaídas",
+                nickname: "Regreso Tradicional",
+                description: "Usa la densa atmósfera terrestre y frena el descenso con tu campana de rescate.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-emerald-400 stroke-current" fill="none" stroke-width="2"><path d="M12 21v-4M4 11c0-4.4 3.6-8 8-8s8 3.6 8 8v1H4v-1zm4 1l4 5 4-5"/></svg>`
+            },
+            {
+                id: "landing_ocean_no_chute",
+                title: "Aterriza exitosamente en OCÉANO sin paracaídas",
+                nickname: "Clavadista Balístico",
+                description: "Acuatiza en el océano a motor limpio y estabiliza la nave sin usar paracaídas.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-cyan-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2v12M8 10l4 4 4-4M2 17c2 1 4-1 6 0s4 1 6 0 4-1 6 0"/></svg>`
+            },
+            {
+                id: "landing_ocean_chute",
+                title: "Aterriza exitosamente en OCÉANO con paracaídas",
+                nickname: "Amerizaje de Manual",
+                description: "Procedimiento estándar de rescate marino con cápsula flotante y paracaídas.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-teal-400 stroke-current" fill="none" stroke-width="2"><path d="M12 3a7 7 0 0 0-7 7v1h14v-1a7 7 0 0 0-7-7zm-6 13c2 1 4-1 6 0s4 1 6 0M12 11v5"/></svg>`
+            },
+            {
+                id: "atmosphere_fire",
+                title: "Incendia tu nave en la atmósfera",
+                nickname: "Meteorito Humano",
+                description: "Alcanza una velocidad de caída extrema en Tierra u Océano creando fricción de plasma.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-500 fill-current"><path d="M12.05 2.22s.11.09.22.21c1.94 2.1 3.23 4.88 3.23 7.85a5.52 5.52 0 0 1-5.5 5.5c-3.04 0-5.5-2.46-5.5-5.5 0-3.32 1.63-6.26 4.14-8.08L9.12 1.5C5.05 3.37 2 7.52 2 12.38 2 17.69 6.31 22 11.62 22s9.62-4.31 9.62-9.62c0-5.22-3.32-9.66-9.19-10.16z"/></svg>`
+            },
+            {
+                id: "ship_crashed",
+                title: "Estrella tu nave en cualquier escenario",
+                nickname: "Científico de Desastres",
+                description: "Ejecuta un desensamblaje rápido no planificado (RUD) impactando a alta velocidad.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-rose-600 stroke-current" fill="none" stroke-width="2"><path d="M12 2l3 6 7-2-5 5 5 7-8-3-6 5 2-7-6-2 8-2z"/></svg>`
+            },
+            {
+                id: "height_30k",
+                title: "Alcanza la altura de 30,000 metros",
+                nickname: "Sonda Estratosférica",
+                description: "Propulsa el módulo hacia la frontera final de la alta atmósfera.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-purple-400 stroke-current" fill="none" stroke-width="2"><path d="M12 21V3M5 10l7-7 7 7M12 3h4M8 14h8"/></svg>`
+            },
+            {
+                id: "speed_x_1000",
+                title: "Alcanza velocidad horizontal de 1000 m/s",
+                nickname: "Flecha Supersónica",
+                description: "Haz funcionar el motor de lado para batir el récord de velocidad lateral (vx).",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-amber-500 stroke-current" fill="none" stroke-width="2"><path d="M2 12h17M15 7l5 5-5 5M6 8l-4 4 4 4"/></svg>`
+            },
+            {
+                id: "all_scenes_complete",
+                title: "Completa todos los escenarios",
+                nickname: "Conquistador del Sistema",
+                description: "Aterriza o acuatiza con éxito en la Luna, Marte, Tierra y el Océano Terrestre.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-400 fill-current"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>`
+            },
+            {
+                id: "fuel_depleted",
+                title: "Usa toda la energía de tu cohete",
+                nickname: "Hasta la Última Gota",
+                description: "Consume el 100% de tu combustible antes de concluir el intento.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-400 stroke-current" fill="none" stroke-width="2"><rect x="5" y="6" width="12" height="15" rx="2"/><path d="M17 9h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2M9 11v5M13 11v5M5 6h12M11 3h1"/></svg>`
+            },
+            {
+                id: "low_power_landing",
+                title: "Aterrizaje con la menor potencia",
+                nickname: "Halcón Eficiente",
+                description: "Realiza un aterrizaje exitoso con la barra de potencia del motor calibrada al mínimo (2000 N).",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-lime-400 stroke-current" fill="none" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5zM16 8l-6 6M9 15h.01"/></svg>`
+            },
+            {
+                id: "flip_360",
+                title: "Da un Giro de 360° en el aire",
+                nickname: "Showman Acrobático",
+                description: "Efectúa una rotación completa de 360 grados en el aire y sobrevive para contarlo.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-fuchsia-400 stroke-current" fill="none" stroke-width="2"><path d="M21.5 2v6h-6M21.34 8a10 10 0 1 0-.45 6.13"/></svg>`
+            },
+            {
+                id: "whip_parachute",
+                title: "Frenado de látigo con paracaídas",
+                nickname: "¡Inercia Extrema!",
+                description: "Despliega el paracaídas cuando caigas a más de 30 m/s para causar una desaceleración de látigo inercial.",
+                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-500 stroke-current" fill="none" stroke-width="2"><path d="M12 21l-3-6-3-6h12l-3 6zM6 9s1.5-5 6-5 6 5 6 5"/></svg>`
+            }
+        ];
+
+        // --- Sistema de Persistencia Local de Logros ---
+        let unlockedAchievements = {};
+
+        function loadAchievements() {
+            try {
+                const data = localStorage.getItem('lander_achievements_v1');
+                if (data) {
+                    unlockedAchievements = JSON.parse(data);
+                } else {
+                    unlockedAchievements = {};
+                }
+            } catch (e) {
+                console.error("No se pudo cargar de localStorage", e);
+                unlockedAchievements = {};
+            }
+            updateAchievementsUI();
+        }
+
+        function saveAchievements() {
+            try {
+                localStorage.setItem('lander_achievements_v1', JSON.stringify(unlockedAchievements));
+            } catch (e) {
+                console.error("No se pudo guardar en localStorage", e);
+            }
+            updateAchievementsUI();
+        }
+
+        function unlockAchievement(id) {
+            if (unlockedAchievements[id]) return; // Ya desbloqueado
+            
+            unlockedAchievements[id] = new Date().toLocaleDateString();
+            saveAchievements();
+            
+            // Sonido de victoria retro
+            playAchievementUnlockedSound();
+            
+            // Mostrar ventana emergente (Toast) flotante
+            const ach = ACHIEVEMENTS_DATA.find(a => a.id === id);
+            if (ach) {
+                showAchievementToast(ach);
+            }
+        }
+
+        function showAchievementToast(ach) {
+            const toast = document.createElement('div');
+            toast.className = 'achievement-toast';
+            toast.innerHTML = `
+                <div class="achievement-icon">${ach.icon}</div>
+                <div>
+                    <div class="nickname">¡LOGRO DESBLOQUEADO!</div>
+                    <h4 class="text-sm font-bold text-white">${ach.title}</h4>
+                    <p class="text-xs text-green-400 font-mono">[${ach.nickname}]</p>
+                </div>
+            `;
+            ui.toastContainer.appendChild(toast);
+            
+            // Remover después de que acabe la animación CSS
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        function updateAchievementsUI() {
+            const keysList = Object.keys(unlockedAchievements);
+            const countStr = `${keysList.length}/${ACHIEVEMENTS_DATA.length}`;
+            
+            if (ui.achievementsBtnCount) ui.achievementsBtnCount.textContent = `(${countStr})`;
+            if (ui.achievementsPanelCount) ui.achievementsPanelCount.textContent = countStr;
+            
+            if (ui.achievementSummaryProgress) {
+                ui.achievementSummaryProgress.textContent = countStr;
+                const pct = (keysList.length / ACHIEVEMENTS_DATA.length) * 100;
+                ui.achievementSummaryProgressBar.style.width = `${pct}%`;
+            }
+
+            // Si el menú de logros está visible, renderizar tarjetas actualizadas
+            if (ui.achievementsPanel.style.display === 'flex') {
+                renderAchievementsGrid();
+            }
+        }
+
+        function renderAchievementsGrid() {
+            ui.achievementGrid.innerHTML = '';
+            ACHIEVEMENTS_DATA.forEach(ach => {
+                const isUnlocked = !!unlockedAchievements[ach.id];
+                const card = document.createElement('div');
+                card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+                
+                card.innerHTML = `
+                    <div class="achievement-icon">
+                        ${ach.icon}
+                    </div>
+                    <div class="achievement-info">
+                        <div class="nickname">${isUnlocked ? ach.nickname : '????'}</div>
+                        <h4>${ach.title}</h4>
+                        <p>${ach.description}</p>
+                        ${isUnlocked ? `<div class="text-[9px] text-green-500 font-mono mt-1">✓ Desbloqueado: ${unlockedAchievements[ach.id]}</div>` : ''}
+                    </div>
+                `;
+                ui.achievementGrid.appendChild(card);
+            });
+        }
+
+        function toggleAchievementsMenu() {
+            tryStartMusic();
+            const isOpen = ui.achievementsPanel.style.display === 'flex';
+            if (isOpen) {
+                ui.achievementsPanel.style.display = 'none';
+            } else {
+                renderAchievementsGrid();
+                ui.achievementsPanel.style.display = 'flex';
+            }
+        }
+
+        function confirmResetAchievements() {
+            if (confirm("¿Estás seguro de que deseas borrar TODOS tus logros y reiniciar el historial? Esta acción no se puede deshacer.")) {
+                unlockedAchievements = {};
+                flightHistory = [];
+                try {
+                    localStorage.removeItem('lander_achievements_v1');
+                    localStorage.removeItem('lander_flight_history');
+                } catch(e){}
+                loadAchievements();
+                reset();
+                alert("Logros e Historial borrados.");
+            }
+        }
+
+        // --- STREAMING_CHUNK: Creando el manejador de partículas del motor y reentrada ---
         ui.thrustRange.addEventListener('input', (e) => {
             ui.thrustDisplay.textContent = e.target.value;
         });
@@ -302,7 +766,6 @@
                     this.life = Math.random() * 1.0 + 0.4;
                     this.colors = ['#ffffff', '#aadeff', '#4682B4'];
                 } else if (type === 'reentry') {
-                    // Chispas flotando hacia arriba debido a la caída de alta velocidad
                     this.vx = (Math.random() - 0.5) * 6;
                     this.vy = -Math.random() * 8 - 4;
                     this.life = Math.random() * 0.8 + 0.3;
@@ -351,6 +814,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK: Creando el paracaídas separado y los servicios de emergencia ---
         class DetachedParachute {
             constructor(x, y, angle, type, waterLevelY) {
                 this.x = x;
@@ -413,10 +877,10 @@
                 this.x = side === 'left' ? -100 : gameWidth + 100;
                 this.y = 100;
                 this.targetX = targetX;
-                this.targetY = targetY - 120; // Se queda flotando encima
-                this.speed = 120; // pixeles por seg
+                this.targetY = targetY - 120; 
+                this.speed = 120; 
                 this.propellerAngle = 0;
-                this.state = 'flying'; // 'flying', 'hovering', 'deploying', 'departing'
+                this.state = 'flying'; 
                 this.timer = 0;
                 this.soldiersDeployed = false;
             }
@@ -437,22 +901,18 @@
                     }
                 } else if (this.state === 'hovering') {
                     this.timer += dt;
-                    // Balanceo ligero al flotar
                     this.y += Math.sin(globalTime * 3) * 0.3;
                     
                     if (this.timer > 1.5 && !this.soldiersDeployed) {
                         this.soldiersDeployed = true;
-                        // Desplegar soldados si estamos en Tierra
                         if (ui.envSelect.value === 'earth') {
                             rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 120));
-                            // Un segundo rescatista un poco después
                             setTimeout(() => {
                                 if (gameOver && ui.envSelect.value === 'earth') {
                                     rescueSoldiers.push(new RescueSoldier(this.x - 15, this.y + 10, this.targetY + 120));
                                 }
                             }, 800);
                         } else if (ui.envSelect.value === 'water') {
-                            // En agua bajan en canasta flotante
                             rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 115, true));
                         }
                     }
@@ -463,7 +923,6 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Cuerda de descenso si está rescatando
                 if (this.state === 'hovering' && this.soldiersDeployed) {
                     ctx.beginPath();
                     ctx.moveTo(0, 10);
@@ -473,8 +932,7 @@
                     ctx.stroke();
                 }
 
-                // Fuselaje del Helicóptero
-                ctx.fillStyle = '#1c3d1c'; // Verde militar
+                ctx.fillStyle = '#1c3d1c'; 
                 ctx.beginPath();
                 ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2);
                 ctx.fill();
@@ -482,13 +940,11 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Cabina (Ventana)
                 ctx.fillStyle = '#4ae';
                 ctx.beginPath();
                 ctx.arc(15, -2, 5, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Cola
                 ctx.beginPath();
                 ctx.moveTo(-20, 0);
                 ctx.lineTo(-45, -5);
@@ -499,7 +955,6 @@
                 ctx.strokeStyle = '#fff';
                 ctx.stroke();
 
-                // Hélice de Cola
                 ctx.save();
                 ctx.translate(-45, -8);
                 ctx.rotate(this.propellerAngle);
@@ -510,7 +965,6 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Hélice Principal (Rotando)
                 ctx.save();
                 ctx.translate(0, -14);
                 let rotorX = Math.cos(this.propellerAngle) * 35;
@@ -522,7 +976,6 @@
                 ctx.stroke();
                 ctx.restore();
 
-                // Soporte de Rotor
                 ctx.beginPath();
                 ctx.moveTo(0, -12);
                 ctx.lineTo(0, -6);
@@ -530,7 +983,6 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Patines de aterrizaje
                 ctx.beginPath();
                 ctx.moveTo(-15, 12); ctx.lineTo(-15, 17);
                 ctx.moveTo(15, 12); ctx.lineTo(15, 17);
@@ -539,7 +991,6 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Luz parpadeante
                 if (Math.floor(globalTime * 5) % 2 === 0) {
                     ctx.beginPath();
                     ctx.arc(-20, -5, 3, 0, Math.PI * 2);
@@ -556,8 +1007,8 @@
                 this.x = startX;
                 this.y = startY;
                 this.groundY = groundY;
-                this.speed = 40; // velocidad de bajada
-                this.state = 'descending'; // 'descending', 'securing'
+                this.speed = 40; 
+                this.state = 'descending'; 
                 this.inBasket = inBasket;
                 this.walkOffset = 0;
             }
@@ -570,7 +1021,6 @@
                         this.state = 'securing';
                     }
                 } else if (this.state === 'securing') {
-                    // Camina lentamente hacia la cápsula
                     let targetX = lander.x + (this.x < lander.x ? -20 : 20);
                     let dx = targetX - this.x;
                     if (Math.abs(dx) > 2) {
@@ -585,7 +1035,6 @@
                 ctx.translate(this.x, this.y);
 
                 if (this.inBasket) {
-                    // Canasta de rescate acuático
                     ctx.strokeStyle = '#ffcc00';
                     ctx.lineWidth = 2;
                     ctx.beginPath();
@@ -597,23 +1046,18 @@
                     ctx.stroke();
                 }
 
-                // Dibujar Personaje (Soldado/Rescatista)
-                // Cabeza
                 ctx.fillStyle = '#ffcc99';
                 ctx.beginPath();
                 ctx.arc(0, -10 + this.walkOffset, 3, 0, Math.PI * 2);
                 ctx.fill();
-                // Casco
                 ctx.fillStyle = '#2d5a27';
                 ctx.beginPath();
                 ctx.arc(0, -11 + this.walkOffset, 3.5, Math.PI, 0);
                 ctx.fill();
 
-                // Cuerpo
                 ctx.fillStyle = '#3a6629';
                 ctx.fillRect(-3, -7 + this.walkOffset, 6, 8);
 
-                // Piernas/Botas
                 ctx.fillStyle = '#1f3a18';
                 ctx.fillRect(-3, 1 + this.walkOffset, 2, 4);
                 ctx.fillRect(1, 1 + this.walkOffset, 2, 4);
@@ -643,11 +1087,9 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                // Sombra de vehículo
                 ctx.fillStyle = 'rgba(0,0,0,0.3)';
                 ctx.fillRect(-22, 14, 44, 4);
 
-                // Chasis Ambulancia
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
                 ctx.roundRect(-20, -5, 40, 18, 3);
@@ -656,31 +1098,27 @@
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Cabina (delante)
                 ctx.fillStyle = '#eee';
                 if (this.side === 'left') {
                     ctx.fillRect(8, -5, 12, 10);
                     ctx.fillStyle = '#333';
-                    ctx.fillRect(13, -3, 6, 5); // Ventana
+                    ctx.fillRect(13, -3, 6, 5); 
                 } else {
                     ctx.fillRect(-20, -5, 12, 10);
                     ctx.fillStyle = '#333';
-                    ctx.fillRect(-19, -3, 6, 5); // Ventana
+                    ctx.fillRect(-19, -3, 6, 5); 
                 }
 
-                // Cruz Roja de Emergencias
                 ctx.fillStyle = '#f00';
                 ctx.fillRect(-3, 1, 6, 2);
                 ctx.fillRect(-1, -1, 2, 6);
 
-                // Ruedas
                 ctx.fillStyle = '#111';
                 ctx.beginPath();
                 ctx.arc(-12, 14, 4, 0, Math.PI * 2);
                 ctx.arc(12, 14, 4, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Sirenas parpadeantes
                 if (Math.floor(globalTime * 8) % 2 === 0) {
                     ctx.beginPath();
                     ctx.arc(-5, -7, 3, 0, Math.PI * 2);
@@ -718,12 +1156,10 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                // Inclinación ligera simulando oleaje
                 let angle = Math.sin(this.x * 0.05 + globalTime * 3) * 0.1;
                 ctx.rotate(angle);
 
-                // Casco de la lancha salvavidas
-                ctx.fillStyle = '#ff4500'; // Naranja brillante de rescate marítimo
+                ctx.fillStyle = '#ff4500'; 
                 ctx.beginPath();
                 if (this.side === 'left') {
                     ctx.moveTo(-18, -4);
@@ -741,13 +1177,11 @@
                 ctx.strokeStyle = '#fff';
                 ctx.stroke();
 
-                // Cabina pequeña / Motor
                 ctx.fillStyle = '#ddd';
                 ctx.fillRect(-10, -8, 8, 4);
                 ctx.fillStyle = '#111';
-                ctx.fillRect(-15, -12, 4, 8); // Motor Fuera de Borda
+                ctx.fillRect(-15, -12, 4, 8); 
 
-                // Salvavidas pintado de lado
                 ctx.beginPath();
                 ctx.arc(0, 0, 3, 0, Math.PI*2);
                 ctx.fillStyle = '#fff';
@@ -757,7 +1191,6 @@
                 ctx.fillStyle = '#ff4500';
                 ctx.fill();
 
-                // Bandera de rescate marítimo
                 ctx.beginPath();
                 ctx.moveTo(-12, -8); ctx.lineTo(-12, -20);
                 ctx.strokeStyle = '#fff';
@@ -778,7 +1211,7 @@
                 this.x = x;
                 this.y = y;
                 this.targetX = x + 35;
-                this.state = 'descending'; // 'descending', 'walking', 'flagging', 'saluting'
+                this.state = 'descending'; 
                 this.timer = 0;
                 this.walkCycle = 0;
                 this.flagPlanted = false;
@@ -786,7 +1219,6 @@
 
             update(dt) {
                 if (this.state === 'descending') {
-                    // Sale de la nave
                     this.timer += dt;
                     if (this.timer > 1.0) {
                         this.state = 'walking';
@@ -810,21 +1242,17 @@
             }
 
             draw() {
-                // Dibujar Bandera si está colocada
                 if (this.flagPlanted) {
                     ctx.save();
                     ctx.translate(this.targetX + 12, this.y + 10);
-                    // Asta
                     ctx.beginPath();
                     ctx.moveTo(0, -30);
                     ctx.lineTo(0, 2);
                     ctx.strokeStyle = '#eee';
                     ctx.lineWidth = 2;
                     ctx.stroke();
-                    // Bandera de la Federación / Científica
                     ctx.fillStyle = '#0052cc';
                     ctx.fillRect(0, -30, 20, 12);
-                    // Simbología (Círculo y estrella de exploración lunar)
                     ctx.beginPath();
                     ctx.arc(8, -24, 3, 0, Math.PI*2);
                     ctx.fillStyle = '#fff';
@@ -837,35 +1265,28 @@
 
                 let bounceY = Math.abs(Math.sin(this.walkCycle)) * -2;
                 if (this.state === 'descending') {
-                    bounceY = -4; // Arriba en la escotilla
+                    bounceY = -4; 
                     ctx.globalAlpha = 0.5;
                 }
 
-                // Traje espacial (Blanco)
                 ctx.fillStyle = '#f0f0f0';
-                // Casco
                 ctx.beginPath();
                 ctx.arc(0, -12 + bounceY, 4, 0, Math.PI * 2);
                 ctx.fill();
-                // Visor Dorado
                 ctx.fillStyle = '#dfaa00';
                 ctx.beginPath();
                 ctx.arc(1, -12 + bounceY, 2, -Math.PI/2, Math.PI/2);
                 ctx.fill();
 
-                // Mochila de soporte vital (PLSS)
                 ctx.fillStyle = '#ccc';
                 ctx.fillRect(-5, -9 + bounceY, 3, 7);
 
-                // Cuerpo
                 ctx.fillStyle = '#ffffff';
                 ctx.fillRect(-3, -8 + bounceY, 6, 8);
 
-                // Brazos (Saludando)
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 if (this.state === 'saluting') {
-                    // Brazo derecho levantado saludando
                     ctx.beginPath();
                     ctx.moveTo(3, -5 + bounceY);
                     ctx.lineTo(8, -12 + bounceY);
@@ -877,7 +1298,6 @@
                     ctx.stroke();
                 }
 
-                // Piernas
                 ctx.fillStyle = '#eee';
                 let legL = Math.sin(this.walkCycle) * 3;
                 let legR = -Math.sin(this.walkCycle) * 3;
@@ -894,7 +1314,7 @@
                 this.x = x;
                 this.y = y + 10;
                 this.targetX = x + 40;
-                this.state = 'unboarding'; // 'unboarding', 'driving'
+                this.state = 'unboarding'; 
                 this.timer = 0;
                 this.wheelRotation = 0;
             }
@@ -922,21 +1342,17 @@
                     ctx.globalAlpha = 0.6;
                 }
 
-                // Sombra rover
                 ctx.fillStyle = 'rgba(0,0,0,0.4)';
                 ctx.fillRect(-12, 10, 24, 3);
 
-                // Cuerpo Rover (Metálico / Dorado)
                 ctx.fillStyle = '#d4af37';
                 ctx.fillRect(-10, -3, 20, 8);
                 ctx.strokeStyle = '#555';
                 ctx.strokeRect(-10, -3, 20, 8);
 
-                // Panel Solar superior
                 ctx.fillStyle = '#000033';
                 ctx.fillRect(-12, -5, 24, 2);
 
-                // Mástil de Cámara
                 ctx.beginPath();
                 ctx.moveTo(4, -3);
                 ctx.lineTo(4, -14);
@@ -944,15 +1360,13 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Cámara / Sensor
                 ctx.fillStyle = '#111';
                 ctx.fillRect(2, -17, 5, 3);
                 ctx.beginPath();
                 ctx.arc(6, -15, 1, 0, Math.PI*2);
-                ctx.fillStyle = '#f00'; // Lente brillante
+                ctx.fillStyle = '#f00'; 
                 ctx.fill();
 
-                // Ruedas (Estructura de suspensión de 6 ruedas)
                 ctx.fillStyle = '#333';
                 const wheelPositions = [-8, 0, 8];
                 wheelPositions.forEach(wx => {
@@ -962,7 +1376,6 @@
                     ctx.beginPath();
                     ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
                     ctx.fill();
-                    // Detalle del rayo de la rueda
                     ctx.beginPath();
                     ctx.moveTo(-3, 0); ctx.lineTo(3, 0);
                     ctx.moveTo(0, -3); ctx.lineTo(0, 3);
@@ -976,6 +1389,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK: Implementando la simulación física de la nave Lander ---
         class Lander {
             constructor(x, y) {
                 this.x = x;
@@ -1005,6 +1419,13 @@
                 this.parachuteDeployed = false; 
                 this.inWater = false;
                 this.detachedParachute = null;
+
+                // Variables para seguimiento de logros
+                this.maxAltitudeReached = 0;
+                this.maxHorizontalSpeedReached = 0;
+                this.cumulativeRotation = 0; 
+                this.parachuteWasUsed = false;
+                this.highSpeedWhipAttempted = false;
             }
 
             get totalMass() { return this.dryMass + this.fuelMass; }
@@ -1054,6 +1475,11 @@
                 }
                 if (this.fuelMass < 0) this.fuelMass = 0;
 
+                // Logro 12: Usa toda la energía (combustible = 0)
+                if (this.fuelMass === 0) {
+                    unlockAchievement('fuel_depleted');
+                }
+
                 // Paracaídas Atmosférico
                 if (this.parachuteDeployed && env.hasAtmosphere) {
                     const dragCoefficientY = 4200; 
@@ -1093,6 +1519,9 @@
 
                 this.vx += ax * dt;
                 this.vy += ay * dt;
+                
+                // Seguir ángulo anterior antes del cálculo del giro 360°
+                const prevAngle = this.angle;
                 this.angularVelocity += alpha * dt;
                 this.angularVelocity *= 0.99; 
 
@@ -1100,20 +1529,59 @@
                 this.y += this.vy * dt * PIXELS_PER_METER;
                 this.angle += this.angularVelocity * dt;
 
+                // Acumular rotación angular para Logro 14: Giro de 360 grados
+                const angleDiff = this.angle - prevAngle;
+                this.cumulativeRotation += angleDiff;
+                if (Math.abs(this.cumulativeRotation) >= Math.PI * 2) {
+                    unlockAchievement('flip_360');
+                }
+
                 if (this.x < 0) this.x = gameWidth;
                 if (this.x > gameWidth) this.x = 0;
 
-                // --- EFECTO DE INCENDIO POR ALTA VELOCIDAD EN AMBIENTES CON ATMOSFERA ---
-                if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
-                    // Genera partículas de reentrada
+                // --- EFECTO DE INCENDIO POR ALTA VELOCIDAD Y LOGRO 7 ---
+                if (env.hasAtmosphere && this.vy > 12) {
                     for (let i = 0; i < 3; i++) {
-                        // Posiciona las chispas en la base inferior de la cápsula
                         particles.push(new Particle(
                             this.x + (Math.random() - 0.5) * this.width,
                             this.y + this.height/2,
                             'reentry'
                         ));
                     }
+                    // Si la velocidad vertical de caída supera 26 m/s en la atmósfera, incendiamos la nave
+                    if (this.vy > 25) {
+                        unlockAchievement('atmosphere_fire');
+                    }
+                }
+
+                // Guardar máximas métricas del vuelo actual para logros
+                const envY = env.type === 'solid' ? getTerrainYAt(this.x) : getWaterLevel(this.x);
+                let altitudReal = (envY - (this.y + this.height/2 + 5)) / PIXELS_PER_METER;
+                if (altitudReal < 0 && env.type === 'solid') altitudReal = 0;
+
+                // Escalar altura para hacer alcanzable el logro de los 30,000 metros al salir arriba
+                // Si la nave sale de la pantalla superior, incrementamos la altura simulada de manera parabólica
+                let simulatedAltitude = altitudReal;
+                if (this.y < 0) {
+                    simulatedAltitude = altitudReal + (Math.pow(Math.abs(this.y), 1.6));
+                }
+
+                if (simulatedAltitude > this.maxAltitudeReached) {
+                    this.maxAltitudeReached = simulatedAltitude;
+                }
+                // Logro 9: Alcanza la altura de 30,000 metros
+                if (this.maxAltitudeReached >= 30000) {
+                    unlockAchievement('height_30k');
+                }
+
+                // Logro 10: Velocidad X extrema de 1000 m/s
+                // Escalamos un poco para premiar el esfuerzo de propulsión horizontal en entornos de baja gravedad
+                const horizontalSpeedKms = Math.abs(this.vx) * 35; // Factor de escala para que 1000 m/s sea alcanzable y divertido
+                if (horizontalSpeedKms > this.maxHorizontalSpeedReached) {
+                    this.maxHorizontalSpeedReached = horizontalSpeedKms;
+                }
+                if (this.maxHorizontalSpeedReached >= 1000) {
+                    unlockAchievement('speed_x_1000');
                 }
             }
 
@@ -1122,11 +1590,9 @@
 
                 if (this.crashed) return;
 
-                // --- EFECTO REENTRY PLASMA GLOW ---
                 if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
                     ctx.save();
                     ctx.translate(this.x, this.y);
-                    // Brillo en forma de arco apuntando hacia abajo en la dirección de la caída
                     let glowIntensity = Math.min((this.vy - 12) / 10, 1.0);
                     ctx.beginPath();
                     ctx.arc(0, this.height/2 - 2, this.width, 0, Math.PI);
@@ -1141,7 +1607,6 @@
                 ctx.translate(this.x, this.y);
                 ctx.rotate(this.angle);
                 
-                // Llama Principal
                 if (this.thrusting) {
                     const flameLength = this.height / 2 + Math.random() * 20 + 15;
                     ctx.beginPath();
@@ -1153,7 +1618,6 @@
                     ctx.fill();
                 }
 
-                // Llamas RCS
                 if (this.rcsLeft) { 
                     ctx.fillStyle = `rgba(200, 255, 255, 0.8)`;
                     ctx.beginPath();
@@ -1171,7 +1635,6 @@
                     ctx.fill();
                 }
 
-                // Cuerpo
                 ctx.beginPath();
                 ctx.moveTo(0, -this.height / 2); 
                 ctx.lineTo(-this.width / 2, this.height / 2); 
@@ -1183,7 +1646,6 @@
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Patas
                 ctx.beginPath();
                 ctx.moveTo(-this.width/2, this.height/2);
                 ctx.lineTo(-this.width/2 - 5, this.height/2 + 5);
@@ -1193,13 +1655,11 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
                 
-                // Cabina
                 ctx.beginPath();
                 ctx.arc(0, -2, 5, 0, Math.PI * 2);
                 ctx.fillStyle = '#0ff';
                 ctx.fill();
 
-                // Paracaídas Atado
                 const env = ENVIRONMENTS[ui.envSelect.value];
                 if (this.parachuteDeployed && env.hasAtmosphere && !this.landed) {
                     ctx.save();
@@ -1239,6 +1699,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK: Creando el generador y detector de colisiones del terreno ---
         function generateTerrain() {
             terrain = [];
             const roughness = 0.4;
@@ -1289,7 +1750,8 @@
         function checkCollisions() {
             if (lander.crashed || lander.landed) return;
             
-            const env = ENVIRONMENTS[ui.envSelect.value];
+            const envKey = ui.envSelect.value;
+            const env = ENVIRONMENTS[envKey];
             const bottomY = lander.y + lander.height/2 + 5;
             const vSpeed = Math.abs(lander.vy);
             const hSpeed = Math.abs(lander.vx);
@@ -1305,14 +1767,22 @@
                         lander.landed = true;
                         lander.vy = 0; lander.vx = 0; lander.angularVelocity = 0; lander.angle = 0;
                         lander.y = terrainY - lander.height/2 - 5;
+                        const isChute = lander.parachuteDeployed;
                         lander.detachParachute('solid');
                         triggerSuccessAnimation();
+                        
+                        // --- ANALIZAR LOGROS DE ATERRIZAJE TERRESTRE/LUNAR/MARTE ---
+                        handleLandingAchievements(envKey, isChute);
+                        
                         endGame(true, vSpeed, hSpeed, angleDeg, "Aterrizaje perfecto en la plataforma.");
                     } else {
                         lander.crashed = true;
                         lander.parachuteDeployed = false; 
                         createExplosion(lander.x, lander.y);
                         
+                        // Logro 8: Estrellar nave
+                        unlockAchievement('ship_crashed');
+
                         let reason = "Fuera de plataforma de aterrizaje.";
                         if (onPad) {
                             if (vSpeed > MAX_LANDING_VSPEED) reason = `Impacto vertical excesivo (${vSpeed.toFixed(1)} m/s).`;
@@ -1333,6 +1803,10 @@
                         lander.parachuteDeployed = false;
                         createExplosion(lander.x, waterY);
                         createSplash(lander.x, waterY);
+                        
+                        // Logro 8: Estrellar nave
+                        unlockAchievement('ship_crashed');
+                        
                         endGame(false, vSpeed, hSpeed, angleDeg, "Impacto violento contra el océano.");
                         return;
                     } else {
@@ -1342,11 +1816,68 @@
 
                 if (lander.inWater && vSpeed < 0.25 && hSpeed < 0.25) {
                     lander.landed = true;
+                    const isChute = lander.parachuteDeployed;
                     lander.detachParachute('liquid');
                     triggerSuccessAnimation();
+
+                    // --- ANALIZAR LOGROS DE ACUATIZAJE ---
+                    handleLandingAchievements(envKey, isChute);
+
                     endGame(true, vSpeed, hSpeed, angleDeg, "Acuatizaje exitoso. Cápsula estabilizada flotando.");
                 }
             }
+        }
+
+        // --- STREAMING_CHUNK: Procesando la lógica e interruptores para desbloquear los logros específicos ---
+        function handleLandingAchievements(envKey, isChute) {
+            // Verificar potencia mínima al aterrizar (Logro 13: Pluma en el Vacío)
+            // Se considera potencia baja si la barra está configurada al mínimo valor absoluto de 2000 Newtons
+            const currentThrustSetting = parseFloat(ui.thrustRange.value);
+            if (currentThrustSetting <= 2000) {
+                unlockAchievement('low_power_landing');
+            }
+
+            if (envKey === 'moon') {
+                // Logro 1: Luna
+                unlockAchievement('landing_moon');
+                trackCompletedScene('moon');
+            } else if (envKey === 'mars') {
+                // Logro 2: Marte
+                unlockAchievement('landing_mars');
+                trackCompletedScene('mars');
+            } else if (envKey === 'earth') {
+                if (!isChute) {
+                    // Logro 3: Tierra sin paracaídas
+                    unlockAchievement('landing_earth_no_chute');
+                } else {
+                    // Logro 4: Tierra con paracaídas
+                    unlockAchievement('landing_earth_chute');
+                }
+                trackCompletedScene('earth');
+            } else if (envKey === 'water') {
+                if (!isChute) {
+                    // Logro 5: Océano sin paracaídas
+                    unlockAchievement('landing_ocean_no_chute');
+                } else {
+                    // Logro 6: Océano con paracaídas
+                    unlockAchievement('landing_ocean_chute');
+                }
+                trackCompletedScene('water');
+            }
+        }
+
+        function trackCompletedScene(sceneKey) {
+            try {
+                let list = JSON.parse(localStorage.getItem('completed_scenes') || "[]");
+                if (!list.includes(sceneKey)) {
+                    list.push(sceneKey);
+                    localStorage.setItem('completed_scenes', JSON.stringify(list));
+                }
+                // Logro 11: Completar todos los escenarios exitosamente (Luna, Marte, Tierra, Océano)
+                if (list.length >= 4) {
+                    unlockAchievement('all_scenes_complete');
+                }
+            } catch(e) {}
         }
 
         function triggerSuccessAnimation() {
@@ -1355,19 +1886,15 @@
 
             const envKey = ui.envSelect.value;
             if (envKey === 'water') {
-                // Envía servicios de emergencia marítimos
                 activeBoats.push(new RescueBoat('left', lander.x));
                 activeBoats.push(new RescueBoat('right', lander.x));
                 activeHelicopters.push(new RescueHelicopter('right', lander.x, lander.y));
             } else if (envKey === 'earth') {
-                // Envía servicios de emergencia terrestres
                 activeAmbulances.push(new RescueAmbulance('left', lander.x, getTerrainYAt(lander.x)));
                 activeHelicopters.push(new RescueHelicopter('left', lander.x, lander.y));
             } else if (envKey === 'moon') {
-                // Despliega astronauta con bandera
                 moonAstronaut = new MoonAstronaut(lander.x, lander.y);
             } else if (envKey === 'mars') {
-                // Despliega Mars Rover
                 marsRover = new MarsRover(lander.x, lander.y);
             }
         }
@@ -1385,6 +1912,11 @@
                 fuel: fuelRemaining,
                 result: success ? '✅ Éxito' : '💥 Choque'
             });
+
+            // Guardar historial
+            try {
+                localStorage.setItem('lander_flight_history', JSON.stringify(flightHistory));
+            } catch(e){}
 
             ui.messageTitle.textContent = success ? (ENVIRONMENTS[ui.envSelect.value].type === 'liquid' ? "¡ACUATIZAJE SEGURO!" : "¡ATERRIZAJE SEGURO!") : "¡NAVE DESTRUIDA!";
             ui.messageTitle.style.color = success ? "#0F0" : "#F00";
@@ -1404,10 +1936,13 @@
                 ui.historyBody.appendChild(tr);
             });
 
-            // Dar tiempo extra para disfrutar de las animaciones antes de mostrar los controles/historial
-            setTimeout(() => { ui.messageBox.style.display = 'block'; }, success ? 4000 : 1200);
+            // Actualizar resumen de logros en el popup emergente
+            updateAchievementsUI();
+
+            setTimeout(() => { ui.messageBox.style.display = 'block'; }, success ? 3500 : 1200);
         }
 
+        // --- STREAMING_CHUNK: Actualizando telemetría y cálculos energéticos de la nave ---
         function updateTelemetry() {
             if(!lander) return;
             const env = ENVIRONMENTS[ui.envSelect.value];
@@ -1422,9 +1957,15 @@
             let altitudReal = (superficieAbajo - (lander.y + lander.height/2 + 5)) / PIXELS_PER_METER;
             if (altitudReal < 0 && env.type === 'solid') altitudReal = 0; 
 
-            ui.altitude.textContent = altitudReal.toFixed(1);
-            ui.hSpeed.textContent = (lander.vx).toFixed(2);
-            ui.vSpeed.textContent = (lander.vy).toFixed(2); 
+            // Para simular la altitud infinita al salir volando hacia arriba
+            let displayAltitude = altitudReal;
+            if (lander.y < 0) {
+                displayAltitude = altitudReal + (Math.pow(Math.abs(lander.y), 1.6));
+            }
+
+            ui.altitude.textContent = displayAltitude.toFixed(0);
+            ui.hSpeed.textContent = (lander.vx * 35).toFixed(1); // Escalado estético para simular realismo en metros/segundo
+            ui.vSpeed.textContent = (lander.vy * 35).toFixed(1); 
             
             const angleDeg = (lander.angle * 180 / Math.PI) % 360;
             ui.angle.textContent = angleDeg.toFixed(1);
@@ -1433,7 +1974,7 @@
             
             const velocitySquared = (lander.vx * lander.vx) + (lander.vy * lander.vy);
             const kineticEnergy = 0.5 * lander.totalMass * velocitySquared;
-            const potentialEnergy = lander.totalMass * env.gravity * Math.max(0, altitudReal);
+            const potentialEnergy = lander.totalMass * env.gravity * Math.max(0, displayAltitude);
             const mechanicEnergy = kineticEnergy + potentialEnergy;
 
             ui.kinEnergy.textContent = (kineticEnergy / 1000).toFixed(1);
@@ -1458,16 +1999,16 @@
             }
         }
 
+        // --- STREAMING_CHUNK: Dibujando la escena y decorando el entorno gráfico ---
         function drawScene() {
             ctx.clearRect(0, 0, gameWidth, gameHeight);
             const envKey = ui.envSelect.value;
             const env = ENVIRONMENTS[envKey];
 
-            // 1. Fondos / Cielo
             if (envKey === 'earth' || envKey === 'water') {
                 const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
-                skyGrad.addColorStop(0, '#102e5c'); 
-                skyGrad.addColorStop(0.5, '#2b78e4'); 
+                skyGrad.addColorStop(0, '#06162d'); 
+                skyGrad.addColorStop(0.5, '#1e5bb4'); 
                 skyGrad.addColorStop(1, '#87CEEB'); 
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
@@ -1479,7 +2020,6 @@
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
             } else {
-                // Luna / Espacio
                 ctx.fillStyle = '#050512';
                 ctx.fillRect(0, 0, gameWidth, gameHeight);
                 ctx.fillStyle = '#ffffff';
@@ -1490,7 +2030,6 @@
                 }
             }
 
-            // 2. Superficie (Terreno o Agua)
             if (env.type === 'solid') {
                 ctx.beginPath();
                 ctx.moveTo(terrain[0].x, terrain[0].y);
@@ -1518,7 +2057,6 @@
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Plataforma
                 ctx.fillStyle = envKey === 'earth' ? '#555' : '#0F0';
                 ctx.fillRect(landingPad.x, landingPad.y, landingPad.width, 6);
                 ctx.strokeStyle = envKey === 'earth' ? '#fff' : '#000';
@@ -1530,7 +2068,6 @@
                 }
                 ctx.stroke();
             } else {
-                // Océano Animado
                 ctx.beginPath();
                 ctx.moveTo(0, gameHeight);
                 for (let x = 0; x <= gameWidth; x += 8) {
@@ -1546,7 +2083,6 @@
                 ctx.fillStyle = waterGrad;
                 ctx.fill();
                 
-                // Cresteo blanco de olas
                 ctx.beginPath();
                 for (let x = 0; x <= gameWidth; x += 12) {
                     ctx.lineTo(x, getWaterLevel(x));
@@ -1556,7 +2092,6 @@
                 ctx.stroke();
             }
 
-            // 3. Dibujar Vehículos de Animación Activa
             activeBoats.forEach(boat => boat.draw());
             activeAmbulances.forEach(amb => amb.draw());
             rescueSoldiers.forEach(soldier => soldier.draw());
@@ -1564,13 +2099,12 @@
             if (moonAstronaut) moonAstronaut.draw();
             if (marsRover) marsRover.draw();
 
-            // 4. Dibujar nave principal
             if (lander) lander.draw();
             
-            // 5. Partículas
             particles.forEach(p => p.draw());
         }
 
+        // --- STREAMING_CHUNK: Iniciando el ciclo de juego y lógica de actualizaciones continuas ---
         function gameLoop(currentTime) {
             let dt = (currentTime - previousTime) / 1000;
             previousTime = currentTime;
@@ -1592,7 +2126,6 @@
                 }
             }
             
-            // Actualizar entidades especiales post-aterrizaje
             activeHelicopters.forEach(cop => cop.update(dt));
             activeAmbulances.forEach(amb => amb.update(dt));
             activeBoats.forEach(boat => boat.update(dt));
@@ -1626,7 +2159,6 @@
             ui.messageBox.style.display = 'none';
             keys = {};
 
-            // Reiniciar Assets de Animación
             activeHelicopters = [];
             activeAmbulances = [];
             activeBoats = [];
@@ -1639,11 +2171,17 @@
             gameLoop(previousTime);
         }
 
+        // --- STREAMING_CHUNK: Añadiendo los oyentes de teclado y gestos táctiles ---
         window.addEventListener('keydown', (e) => {
             tryStartMusic();
             if (e.key === 'p' || e.key === 'P') {
                 const env = ENVIRONMENTS[ui.envSelect.value];
                 if (env.hasAtmosphere && lander && !lander.crashed && !lander.landed) {
+                    // Logro 15: Momento de inercia inaudito con el paracaídas
+                    // Si el paracaídas se despliega cayendo a muy alta velocidad (ej. vy superior a 15 m/s)
+                    if (lander.vy > 10) {
+                        unlockAchievement('whip_parachute');
+                    }
                     lander.parachuteDeployed = true;
                 }
             } else if (e.key === 'r' || e.key === 'R') {
@@ -1657,6 +2195,17 @@
         window.addEventListener('mousedown', () => { tryStartMusic(); });
         window.addEventListener('resize', () => { if (!gameOver) reset(); });
 
+        // Cargar historial si existe
+        try {
+            const hist = localStorage.getItem('lander_flight_history');
+            if (hist) {
+                flightHistory = JSON.parse(hist);
+                attemptNumber = flightHistory.length;
+            }
+        } catch(e){}
+
+        // Inicializar los logros al arrancar
+        loadAchievements();
         reset();
     </script>
 </body>
