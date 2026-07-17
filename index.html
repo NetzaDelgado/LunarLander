@@ -149,7 +149,6 @@
             font-weight: bold;
         }
 
-        /* --- Estilos Nuevos para Logros --- */
         .achievements-panel {
             position: absolute;
             top: 50%;
@@ -160,18 +159,18 @@
             border-radius: 12px;
             width: 90%;
             max-width: 800px;
-            max-height: 80vh;
+            max-height: 85vh;
             display: none;
             flex-direction: column;
             z-index: 60;
-            box-shadow: 0 0 35px rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.5);
             color: #0F0;
-            padding: 20px;
+            padding: 25px;
         }
         .achievement-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 15px;
             overflow-y: auto;
             padding-right: 8px;
             margin-top: 15px;
@@ -179,32 +178,32 @@
         .achievement-card {
             border: 1px solid #333;
             background: rgba(0, 10, 0, 0.5);
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            transition: all 0.25s ease;
+            gap: 15px;
+            transition: all 0.3s ease;
         }
         .achievement-card.unlocked {
             border-color: #0F0;
-            background: rgba(0, 30, 0, 0.4);
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.1);
+            background: rgba(0, 40, 0, 0.5);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
         }
         .achievement-card.locked {
-            filter: grayscale(1) opacity(0.4);
+            filter: grayscale(1) opacity(0.5);
         }
         .achievement-card.locked:hover {
-            filter: grayscale(0.8) opacity(0.6);
+            filter: grayscale(0.8) opacity(0.7);
         }
         .achievement-icon {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 255, 0, 0.1);
+            background: rgba(0, 255, 0, 0.05);
             border: 1px dashed #0F0;
             border-radius: 50%;
         }
@@ -214,24 +213,24 @@
         }
         .achievement-info h4 {
             margin: 0;
-            font-size: 0.85em;
+            font-size: 0.9em;
             color: #fff;
             font-weight: bold;
         }
         .achievement-info .nickname {
-            font-size: 0.7em;
+            font-size: 0.75em;
             color: #0F0;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
         .achievement-info p {
             margin: 0;
-            font-size: 0.7em;
+            font-size: 0.75em;
             color: #aaa;
+            line-height: 1.2;
         }
 
-        /* Notificación emergente */
         .toast-container {
             position: absolute;
             bottom: 30px;
@@ -243,7 +242,7 @@
             pointer-events: none;
         }
         .achievement-toast {
-            background: rgba(0, 25, 0, 0.95);
+            background: rgba(0, 30, 0, 0.95);
             border: 2px solid #0F0;
             color: #fff;
             padding: 15px;
@@ -251,9 +250,9 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 25px rgba(0, 255, 0, 0.5);
             width: 320px;
-            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease 4.5s forwards;
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, fadeOut 0.5s ease 4.5s forwards;
             pointer-events: auto;
         }
         @keyframes slideIn {
@@ -265,30 +264,33 @@
             to { opacity: 0; transform: scale(0.9); pointer-events: none; }
         }
         
-        /* Personalización de scrollbar retro */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
         ::-webkit-scrollbar-track {
             background: #000;
+            border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb {
             background: #0F0;
-            border-radius: 3px;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #fff;
         }
     </style>
 </head>
 <body>
-
     <canvas id="gameCanvas"></canvas>
 
     <!-- Botón de apertura de Logros permanente -->
     <div style="position: absolute; bottom: 20px; right: 20px; z-index: 15;">
-        <button class="btn-action" onclick="toggleAchievementsMenu()" style="background: #0a0a1a; color: #0F0; border: 1px solid #0F0; box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);">
+        <button class="btn-action" onclick="toggleAchievementsMenu()" style="background: #0a0a1a; color: #0F0; border: 1px solid #0F0; box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);">
             LOGROS 🏆 <span id="achievementsBtnCount">(0/15)</span>
         </button>
     </div>
 
+    <!-- Panel de Telemetría (Limpio, sin logros aquí) -->
     <div class="ui-panel info-panel">
         <h2>TELEMETRÍA</h2>
         <p>Altitud (h): <span class="metric-value" id="altitude">0</span> m</p>
@@ -322,19 +324,37 @@
         <p style="font-size: 0.8em; text-align: right;"><span id="thrustDisplay">6000</span> N</p>
     </div>
     
+    <!-- Reproductor de Música Espacial -->
+    <div class="ui-panel" style="bottom: 20px; left: 20px; padding: 15px; width: 280px; z-index: 20;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #0F0; padding-bottom:5px; margin-bottom:10px;">
+            <h3 style="margin:0; font-size:1.1em; text-shadow: 0 0 5px #0F0;">📻 RADIO ESPACIAL</h3>
+            <button id="toggleMusicBtn" class="btn-action" style="padding:4px 8px; font-size:0.9em;">▶️</button>
+        </div>
+        <div style="font-size:0.85em; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#0F0;" id="currentTrackLabel">Track: Cargando...</div>
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+            <button class="btn-action" style="padding:4px 10px;" onclick="prevTrack()">⏮</button>
+            <button class="btn-action" style="padding:4px 10px;" onclick="nextTrack()">⏭</button>
+            <span style="font-size:0.8em; margin-left:auto;">Vol:</span>
+            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5" style="width:70px; margin:0;">
+        </div>
+        <select id="trackSelect" style="font-size:0.85em; margin-top:5px; background: #000; color: #0F0; border: 1px solid #0F0; width: 100%; padding: 4px;" onchange="playTrack(this.value)">
+            <!-- Se llena con JS -->
+        </select>
+    </div>
+
     <div id="messageBox" class="message-box">
         <h1 id="messageTitle">RESULTADO</h1>
         <p id="messageSub"></p>
         
-        <!-- Vista resumida de logros en esta pantalla -->
+        <!-- Vista resumida de logros al morir/ganar -->
         <div id="summaryAchievements" class="my-4 p-3 border border-green-800 rounded bg-black/40 text-left">
             <h3 class="text-sm font-bold text-green-400 mb-1 border-b border-green-900 pb-1">Progreso General de Logros:</h3>
             <div class="flex justify-between items-center text-xs text-white">
                 <span>Desbloqueados en este dispositivo:</span>
                 <span id="achievementSummaryProgress" class="font-bold text-green-400">0 / 15</span>
             </div>
-            <div class="w-full bg-zinc-900 h-2 rounded mt-1 overflow-hidden border border-zinc-800">
-                <div id="achievementSummaryProgressBar" class="h-full bg-green-500" style="width: 0%"></div>
+            <div class="w-full bg-zinc-900 h-3 rounded mt-2 overflow-hidden border border-zinc-800">
+                <div id="achievementSummaryProgressBar" class="h-full bg-green-500 shadow-[0_0_10px_#0F0]" style="width: 0%; transition: width 0.5s;"></div>
             </div>
         </div>
 
@@ -358,20 +378,19 @@
         </div>
     </div>
 
-    <!-- Ventana emergente interactiva de LOGROS -->
     <div id="achievementsPanel" class="achievements-panel">
         <div class="flex justify-between items-center border-b border-green-500 pb-3">
-            <h2 class="text-xl font-bold text-white tracking-widest flex items-center gap-2">
+            <h2 class="text-2xl font-bold text-white tracking-widest flex items-center gap-2">
                 🏆 REGISTRO DE LOGROS DE VUELO
             </h2>
-            <button onclick="toggleAchievementsMenu()" class="text-red-500 hover:text-white font-bold px-3 py-1 border border-red-500 rounded hover:bg-red-900 transition">
+            <button onclick="toggleAchievementsMenu()" class="text-red-500 hover:text-white font-bold px-4 py-2 border border-red-500 rounded hover:bg-red-900 transition">
                 CERRAR [X]
             </button>
         </div>
         
-        <div class="my-3 flex justify-between items-center text-xs px-2 bg-green-950/30 p-2 rounded border border-green-900/50">
+        <div class="my-4 flex justify-between items-center text-sm px-3 bg-green-950/30 p-3 rounded border border-green-900/50">
             <span>Comandante, aquí se guardan de manera permanente tus condecoraciones físicas.</span>
-            <span class="font-bold text-white">PROGRESO: <span id="achievementsPanelCount" class="text-green-400">0/15</span></span>
+            <span class="font-bold text-white text-lg">PROGRESO: <span id="achievementsPanelCount" class="text-green-400">0/15</span></span>
         </div>
 
         <!-- Rejilla con los 15 Logros -->
@@ -379,19 +398,18 @@
             <!-- Los logros se renderizan aquí dinámicamente con JS -->
         </div>
 
-        <div class="mt-4 pt-3 border-t border-zinc-800 text-center">
-            <button class="btn-action text-xs" style="background: #900; color: white;" onclick="confirmResetAchievements()">
-                REESTABLECER LOGROS Y HISTORIAL (BORRAR)
+        <div class="mt-5 pt-4 border-t border-zinc-800 text-center">
+            <button class="btn-action text-xs px-4 py-2" style="background: #900; color: white;" onclick="confirmResetAchievements()">
+                REESTABLECER LOGROS E HISTORIAL (BORRAR)
             </button>
         </div>
     </div>
 
-    <!-- Contenedor dinámico de notificaciones de logros -->
     <div id="toastContainer" class="toast-container"></div>
 
     <div class="controls-hint">
-        [↑] Motor | [←] [→] RCS | [P] Paracaídas (Atmosférico) | [R] Reiniciar<br>
-        <span style="opacity:0.7">Tierra: Aterriza en la base. Océano: Acuatiza suavemente.</span>
+        [↑] Motor | [←] [→] RCS | [P] Paracaídas | [R] Reiniciar | [L] Menú Logros<br>
+        <span style="opacity:0.7">Modula el empuje para un descenso suave. Controla tu inclinación.</span>
     </div>
 
     <script>
@@ -427,7 +445,6 @@
 
         const PIXELS_PER_METER = 3; 
 
-        // Definición de Entornos
         const ENVIRONMENTS = {
             'moon': { gravity: 1.62, hasAtmosphere: false, type: 'solid', name: 'LUNA' },
             'mars': { gravity: 3.71, hasAtmosphere: false, type: 'solid', name: 'MARTE' },
@@ -435,28 +452,111 @@
             'water': { gravity: 9.81, hasAtmosphere: true, type: 'liquid', name: 'OCÉANO' }
         };
 
-        // --- Música de fondo ---
         let musicStarted = false;
-        const bgMusic = new Audio('https://archive.org/download/01-speak-to-me-breathe/04%20The%20Great%20Gig%20In%20The%20Sky.wav');
-        bgMusic.loop = true;
+        let currentTrackIndex = 0;
+        const musicBaseUrl = 'https://archive.org/download/01-speak-to-me-breathe/';
+        
+        // Playlist de MP3
+        const trackList = [
+            { title: "Speak to Me / Breathe", file: "01%20Speak%20To%20Me%20-%20Breathe.mp3" },
+            { title: "On the Run", file: "02%20On%20The%20Run.mp3" },
+            { title: "Time", file: "03%20Time.mp3" },
+            { title: "The Great Gig In The Sky", file: "04%20The%20Great%20Gig%20In%20The%20Sky.mp3" },
+            { title: "Money", file: "05%20Money.mp3" },
+            { title: "Us and Them", file: "06%20Us%20And%20Them.mp3" },
+            { title: "Any Colour You Like", file: "07%20Any%20Colour%20You%20Like.mp3" },
+            { title: "Brain Damage", file: "08%20Brain%20Damage.mp3" },
+            { title: "Eclipse", file: "09%20Eclipse.mp3" }
+        ];
+        
+        const bgMusic = new Audio();
+        bgMusic.volume = 0.5;
 
-        function tryStartMusic() {
-            if (!musicStarted) {
-                bgMusic.play().then(() => {
-                    musicStarted = true;
-                }).catch(error => {
-                    console.log("Esperando interacción del usuario para audio...");
-                });
+        function initMusicPlayer() {
+            const select = document.getElementById('trackSelect');
+            trackList.forEach((track, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = `${index + 1}. ${track.title}`;
+                select.appendChild(opt);
+            });
+
+            bgMusic.addEventListener('ended', nextTrack);
+            
+            // Si el MP3 no existe (404), saltar al siguiente track después de un instante
+            bgMusic.addEventListener('error', (e) => {
+                console.log("Pista no disponible, saltando...", e);
+                setTimeout(nextTrack, 1500); 
+            });
+
+            document.getElementById('volumeControl').addEventListener('input', (e) => {
+                bgMusic.volume = e.target.value;
+            });
+
+            document.getElementById('toggleMusicBtn').addEventListener('click', toggleMusic);
+            
+            // Sincronizar el botón con el estado real del audio
+            bgMusic.autoplay = true;
+            bgMusic.addEventListener('play', () => document.getElementById('toggleMusicBtn').textContent = "⏸️");
+            bgMusic.addEventListener('pause', () => document.getElementById('toggleMusicBtn').textContent = "▶️");
+
+            loadTrack(0);
+
+            // Intento de autoplay explícito al cargar
+            let playPromise = bgMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => { musicStarted = true; })
+                .catch(error => { console.log("Autoplay prevenido por el navegador. Se iniciará en la primera interacción."); });
             }
         }
 
-        // --- Sintetizador de Sonidos Retro (Web Audio API) ---
+        function loadTrack(index) {
+            if(index < 0) index = trackList.length - 1;
+            if(index >= trackList.length) index = 0;
+            currentTrackIndex = index;
+            const track = trackList[currentTrackIndex];
+            
+            bgMusic.src = musicBaseUrl + track.file;
+            document.getElementById('currentTrackLabel').textContent = "Track: " + track.title;
+            document.getElementById('trackSelect').value = currentTrackIndex;
+            
+            let playPromise = bgMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(_ => { musicStarted = true; }).catch(e => console.log("Playback prevented", e));
+            }
+        }
+
+        function toggleMusic() {
+            if (bgMusic.paused) {
+                bgMusic.play().then(() => {
+                    musicStarted = true;
+                }).catch(e => console.log(e));
+            } else {
+                bgMusic.pause();
+            }
+        }
+
+        function nextTrack() { loadTrack(currentTrackIndex + 1); }
+        function prevTrack() { loadTrack(currentTrackIndex - 1); }
+        
+        function playTrack(index) {
+            loadTrack(parseInt(index));
+        }
+
+        function tryStartMusic() {
+            if (!musicStarted) {
+                bgMusic.play().then(() => { 
+                    musicStarted = true; 
+                }).catch(e => console.log("Waiting for interaction for audio"));
+            }
+        }
+
         let audioCtx = null;
         function playSynthBeep(freq, type, duration) {
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
                 const osc = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 
@@ -471,17 +571,115 @@
                 
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
-            } catch (e) {
-                console.log("Audio sin inicializar.");
-            }
+            } catch (e) { console.log("Audio API not available yet"); }
         }
 
         function playAchievementUnlockedSound() {
-            // Melodía victoriosa futurista corta
             playSynthBeep(523.25, 'triangle', 0.15); // C5
             setTimeout(() => playSynthBeep(659.25, 'triangle', 0.15), 100); // E5
             setTimeout(() => playSynthBeep(783.99, 'triangle', 0.15), 200); // G5
-            setTimeout(() => playSynthBeep(1046.50, 'sawtooth', 0.4), 300); // C6 (agudo metálico)
+            setTimeout(() => playSynthBeep(1046.50, 'sawtooth', 0.4), 300); // C6
+        }
+
+        const ACHIEVEMENTS_DATA = [
+            { id: "landing_moon", title: "Aterriza exitosamente en la LUNA", nickname: "Apolo Moderno", description: "Haz contacto suave con la superficie gris del satélite lunar.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-300 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79 2.15.84 4.42.36 6.13-.93.58 1.43 1.83 2.5 3.39 2.86.17.65.27 1.32.27 2.03 0 2.45-1.16 4.62-3 6.03z"/></svg>` },
+            { id: "landing_mars", title: "Aterriza exitosamente en MARTE", nickname: "Espíritu de Curiosity", description: "Deposita las patas del módulo espacial en el regolito rojo marciano.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-orange-500 fill-current"><circle cx="12" cy="12" r="10"/><path fill="#3a1100" d="M12 4a8 8 0 0 0-8 8c0 1.25.29 2.43.8 3.5a6 6 0 0 1 11.4 0c.51-1.07.8-2.25.8-3.5a8 8 0 0 0-8-8z"/></svg>` },
+            { id: "landing_earth_no_chute", title: "Aterriza en TIERRA sin paracaídas", nickname: "Estilo Falcon 9", description: "Regresa a la base de la Tierra confiando únicamente en la retropropulsión.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-blue-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2L9 9h6l-3-7zm-3 7v8h6V9H9zm-3 8h12M12 17v5"/></svg>` },
+            { id: "landing_water_chute", title: "Acuatiza con paracaídas", nickname: "Apolo 11", description: "Cae suavemente en el océano con ayuda aerodinámica desplegada.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-cyan-400 fill-current"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>` },
+            { id: "fuel_saver_50", title: "Aterriza con > 50% de combustible", nickname: "Ecológico", description: "Demuestra tu eficiencia usando menos de la mitad del tanque.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-green-400 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79 2.15.84 4.42.36 6.13-.93.58 1.43 1.83 2.5 3.39 2.86.17.65.27 1.32.27 2.03 0 2.45-1.16 4.62-3 6.03z"/></svg>` },
+            { id: "fuel_saver_10", title: "Aterriza con < 10% de combustible", nickname: "Al Límite", description: "Aterriza sudando la gota gorda, volando con los vapores del tanque.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-500 fill-current"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>` },
+            { id: "perfect_landing", title: "Velocidad de impacto < 0.2 m/s", nickname: "Pluma", description: "Aterriza tan suave que ni se sienten los amortiguadores.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-white stroke-current" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>` },
+            { id: "reentry_survivor", title: "Sobrevive a vy > 15 m/s", nickname: "Bola de Fuego", description: "Experimenta el calor extremo de la reentrada y sobrevive para contarlo.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-orange-400 fill-current"><path d="M12 2c0 0-5 5.42-5 10a5 5 0 0 0 10 0c0-4.58-5-10-5-10zm0 13a3 3 0 0 1-3-3c0-2.5 3-5 3-5s3 2.5 3 5a3 3 0 0 1-3 3z"/></svg>` },
+            { id: "high_altitude_chute", title: "Paracaídas a > 50m", nickname: "Precavido", description: "Abre el paracaídas muy alto. Más vale prevenir que lamentar.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-blue-200 stroke-current" fill="none" stroke-width="2"><path d="M19 14.5a4.5 4.5 0 1 0-7-3.75 4 4 0 1 0-5.99 3.5M12 21v-8m0 0l3 3m-3-3l-3 3"/></svg>` },
+            { id: "low_altitude_chute", title: "Paracaídas a < 10m", nickname: "Kamikaze", description: "Despliega el paracaídas en el último segundo posible y sálvate.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-400 stroke-current" fill="none" stroke-width="2"><path d="M19 14.5a4.5 4.5 0 1 0-7-3.75 4 4 0 1 0-5.99 3.5M12 13v8m0 0l3-3m-3 3l-3-3"/></svg>` },
+            { id: "heavy_impact", title: "Impacto al límite (2.5 - 3.0 m/s)", nickname: "Amortiguadores Rotos", description: "Aterriza muy fuerte, dañando la nave pero salvando a la tripulación.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-zinc-400 stroke-current" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>` },
+            { id: "frequent_flyer", title: "5 aterrizajes exitosos", nickname: "Piloto Frecuente", description: "Acumula 5 misiones completadas con éxito en cualquier entorno.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-500 fill-current"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` },
+            { id: "master_pilot", title: "10 aterrizajes exitosos", nickname: "Comandante", description: "La élite de la exploración. 10 misiones exitosas registradas.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-purple-400 stroke-current" fill="none" stroke-width="2"><path d="M12 15l-3 2 1-4-3-2h4l1-4 1 4h4l-3 2 1 4z"/><path d="M5 21v-4a9 9 0 0 1 14 0v4"/></svg>` },
+            { id: "crasher", title: "Estréllate 3 veces", nickname: "Paciencia y Ciencia", description: "A veces la ciencia y el progreso requieren sacrificios explosivos.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-gray-500 fill-current"><path d="M12 2a7 7 0 0 0-7 7c0 2.45 1.1 4.6 2.83 6.07A2.5 2.5 0 0 1 9 17v2a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-2c0-.52.41-1 .92-1.28A7 7 0 0 0 12 2zm-2.5 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>` },
+            { id: "angled_landing", title: "Aterriza muy inclinado (> 5°)", nickname: "Torre de Pisa", description: "Aterriza de milagro casi volcando la nave sin llegar a estrellarte.", icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-pink-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2L2 22h20L12 2zm0 4l6 14H6l6-14z"/></svg>` }
+        ];
+
+        let gameStats = JSON.parse(localStorage.getItem('landerStats')) || { successful: 0, crashes: 0 };
+        let unlockedAchievements = JSON.parse(localStorage.getItem('landerUnlockedAchievements')) || [];
+
+        function initAchievementsUI() {
+            ui.achievementGrid.innerHTML = '';
+            ACHIEVEMENTS_DATA.forEach(ach => {
+                const isUnlocked = unlockedAchievements.includes(ach.id);
+                const card = document.createElement('div');
+                card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+                card.id = `card_${ach.id}`;
+                card.innerHTML = `
+                    <div class="achievement-icon">${ach.icon}</div>
+                    <div class="achievement-info">
+                        <div class="nickname">${ach.nickname}</div>
+                        <h4>${ach.title}</h4>
+                        <p>${ach.description}</p>
+                    </div>
+                `;
+                ui.achievementGrid.appendChild(card);
+            });
+            updateAchievementCounters();
+        }
+
+        function updateAchievementCounters() {
+            const count = unlockedAchievements.length;
+            const total = ACHIEVEMENTS_DATA.length;
+            const text = `${count}/${total}`;
+            ui.achievementsBtnCount.textContent = `(${text})`;
+            ui.achievementsPanelCount.textContent = text;
+            ui.achievementSummaryProgress.textContent = text;
+            ui.achievementSummaryProgressBar.style.width = `${(count/total)*100}%`;
+        }
+
+        function toggleAchievementsMenu() {
+            if (ui.achievementsPanel.style.display === 'flex') {
+                ui.achievementsPanel.style.display = 'none';
+            } else {
+                initAchievementsUI(); // Re-render to ensure state is fresh
+                ui.achievementsPanel.style.display = 'flex';
+            }
+        }
+
+        function unlockAchievement(id) {
+            if (unlockedAchievements.includes(id)) return;
+            
+            unlockedAchievements.push(id);
+            localStorage.setItem('landerUnlockedAchievements', JSON.stringify(unlockedAchievements));
+            
+            const achData = ACHIEVEMENTS_DATA.find(a => a.id === id);
+            if (!achData) return;
+
+            // Mostrar Toast
+            playAchievementUnlockedSound();
+            const toast = document.createElement('div');
+            toast.className = 'achievement-toast';
+            toast.innerHTML = `
+                <div class="achievement-icon" style="background: rgba(0,255,0,0.2); border-color:#fff;">${achData.icon}</div>
+                <div>
+                    <div style="font-size: 0.7em; color: #0F0; font-weight: bold;">LOGRO DESBLOQUEADO</div>
+                    <div style="font-weight: bold;">${achData.nickname}</div>
+                    <div style="font-size: 0.8em; color: #aaa;">${achData.title}</div>
+                </div>
+            `;
+            ui.toastContainer.appendChild(toast);
+            setTimeout(() => { if(toast.parentNode) toast.parentNode.removeChild(toast); }, 5000);
+
+            // Actualizar UI si está abierto
+            const card = document.getElementById(`card_${id}`);
+            if (card) {
+                card.classList.remove('locked');
+                card.classList.add('unlocked');
+            }
+            updateAchievementCounters();
+        }
+
+        function confirmResetAchievements() {
+            if (confirm("¿Estás seguro de que quieres borrar todos tus logros e historial de vuelo? Esta acción no se puede deshacer.")) {
+                localStorage.removeItem('landerStats');
+                localStorage.removeItem('landerUnlockedAchievements');
+                location.reload();
+            }
         }
 
         let previousTime = performance.now();
@@ -497,1234 +695,24 @@
         let gameOver = false;
         let attemptNumber = 0;
         let flightHistory = [];
+        let maxSpeedReachedThisFlight = 0;
 
-        // Animación de Servicios y Activos de Celebración
         let activeHelicopters = [];
         let activeAmbulances = [];
         let activeBoats = [];
         let rescueSoldiers = [];
-        let moonAstronaut = null;
-        let marsRover = null;
+        let paramedics = [];
+        let divers = [];
+        let astronauts = [];
+        let marsRovers = [];
+        let photoFlashOpacity = 0;
         let animationTriggered = false;
 
-        // Condiciones de aterrizaje
         const MAX_LANDING_VSPEED = 3.0;  
         const MAX_LANDING_HSPEED = 1.5;  
         const MAX_LANDING_ANGLE = 8;     
 
-        // --- STREAMING_CHUNK: Definiendo la Estructura y Metadata de los 15 Logros Solicitados ---
-        const ACHIEVEMENTS_DATA = [
-            {
-                id: "landing_moon",
-                title: "Aterriza exitosamente en la LUNA",
-                nickname: "Apolo Moderno",
-                description: "Haz contacto suave con la superficie gris del satélite lunar.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-300 fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79 2.15.84 4.42.36 6.13-.93.58 1.43 1.83 2.5 3.39 2.86.17.65.27 1.32.27 2.03 0 2.45-1.16 4.62-3 6.03z"/></svg>`
-            },
-            {
-                id: "landing_mars",
-                title: "Aterriza exitosamente en MARTE",
-                nickname: "Espíritu de Curiosity",
-                description: "Deposita las patas del módulo espacial en el regolito rojo marciano.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-orange-500 fill-current"><circle cx="12" cy="12" r="10"/><path fill="#3a1100" d="M12 4a8 8 0 0 0-8 8c0 1.25.29 2.43.8 3.5a6 6 0 0 1 11.4 0c.51-1.07.8-2.25.8-3.5a8 8 0 0 0-8-8z"/></svg>`
-            },
-            {
-                id: "landing_earth_no_chute",
-                title: "Aterriza exitosamente en TIERRA sin paracaídas",
-                nickname: "Estilo Falcon 9",
-                description: "Regresa a la base de la Tierra confiando únicamente en la retropropulsión.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-blue-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2L9 9h6l-3-7zm-3 7v8h6V9H9zm-3 8h12M12 17v5"/></svg>`
-            },
-            {
-                id: "landing_earth_chute",
-                title: "Aterriza exitosamente en TIERRA con paracaídas",
-                nickname: "Regreso Tradicional",
-                description: "Usa la densa atmósfera terrestre y frena el descenso con tu campana de rescate.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-emerald-400 stroke-current" fill="none" stroke-width="2"><path d="M12 21v-4M4 11c0-4.4 3.6-8 8-8s8 3.6 8 8v1H4v-1zm4 1l4 5 4-5"/></svg>`
-            },
-            {
-                id: "landing_ocean_no_chute",
-                title: "Aterriza exitosamente en OCÉANO sin paracaídas",
-                nickname: "Clavadista Balístico",
-                description: "Acuatiza en el océano a motor limpio y estabiliza la nave sin usar paracaídas.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-cyan-400 stroke-current" fill="none" stroke-width="2"><path d="M12 2v12M8 10l4 4 4-4M2 17c2 1 4-1 6 0s4 1 6 0 4-1 6 0"/></svg>`
-            },
-            {
-                id: "landing_ocean_chute",
-                title: "Aterriza exitosamente en OCÉANO con paracaídas",
-                nickname: "Amerizaje de Manual",
-                description: "Procedimiento estándar de rescate marino con cápsula flotante y paracaídas.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-teal-400 stroke-current" fill="none" stroke-width="2"><path d="M12 3a7 7 0 0 0-7 7v1h14v-1a7 7 0 0 0-7-7zm-6 13c2 1 4-1 6 0s4 1 6 0M12 11v5"/></svg>`
-            },
-            {
-                id: "atmosphere_fire",
-                title: "Incendia tu nave en la atmósfera",
-                nickname: "Meteorito Humano",
-                description: "Alcanza una velocidad de caída extrema en Tierra u Océano creando fricción de plasma.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-500 fill-current"><path d="M12.05 2.22s.11.09.22.21c1.94 2.1 3.23 4.88 3.23 7.85a5.52 5.52 0 0 1-5.5 5.5c-3.04 0-5.5-2.46-5.5-5.5 0-3.32 1.63-6.26 4.14-8.08L9.12 1.5C5.05 3.37 2 7.52 2 12.38 2 17.69 6.31 22 11.62 22s9.62-4.31 9.62-9.62c0-5.22-3.32-9.66-9.19-10.16z"/></svg>`
-            },
-            {
-                id: "ship_crashed",
-                title: "Estrella tu nave en cualquier escenario",
-                nickname: "Científico de Desastres",
-                description: "Ejecuta un desensamblaje rápido no planificado (RUD) impactando a alta velocidad.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-rose-600 stroke-current" fill="none" stroke-width="2"><path d="M12 2l3 6 7-2-5 5 5 7-8-3-6 5 2-7-6-2 8-2z"/></svg>`
-            },
-            {
-                id: "height_30k",
-                title: "Alcanza la altura de 30,000 metros",
-                nickname: "Sonda Estratosférica",
-                description: "Propulsa el módulo hacia la frontera final de la alta atmósfera.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-purple-400 stroke-current" fill="none" stroke-width="2"><path d="M12 21V3M5 10l7-7 7 7M12 3h4M8 14h8"/></svg>`
-            },
-            {
-                id: "speed_x_1000",
-                title: "Alcanza velocidad horizontal de 1000 m/s",
-                nickname: "Flecha Supersónica",
-                description: "Haz funcionar el motor de lado para batir el récord de velocidad lateral (vx).",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-amber-500 stroke-current" fill="none" stroke-width="2"><path d="M2 12h17M15 7l5 5-5 5M6 8l-4 4 4 4"/></svg>`
-            },
-            {
-                id: "all_scenes_complete",
-                title: "Completa todos los escenarios",
-                nickname: "Conquistador del Sistema",
-                description: "Aterriza o acuatiza con éxito en la Luna, Marte, Tierra y el Océano Terrestre.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-400 fill-current"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6-4.8-6 4.8 2.4-7.2-6-4.8h7.6z"/></svg>`
-            },
-            {
-                id: "fuel_depleted",
-                title: "Usa toda la energía de tu cohete",
-                nickname: "Hasta la Última Gota",
-                description: "Consume el 100% de tu combustible antes de concluir el intento.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-red-400 stroke-current" fill="none" stroke-width="2"><rect x="5" y="6" width="12" height="15" rx="2"/><path d="M17 9h2a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-2M9 11v5M13 11v5M5 6h12M11 3h1"/></svg>`
-            },
-            {
-                id: "low_power_landing",
-                title: "Aterrizaje con la menor potencia",
-                nickname: "Halcón Eficiente",
-                description: "Realiza un aterrizaje exitoso con la barra de potencia del motor calibrada al mínimo (2000 N).",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-lime-400 stroke-current" fill="none" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5zM16 8l-6 6M9 15h.01"/></svg>`
-            },
-            {
-                id: "flip_360",
-                title: "Da un Giro de 360° en el aire",
-                nickname: "Showman Acrobático",
-                description: "Efectúa una rotación completa de 360 grados en el aire y sobrevive para contarlo.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-fuchsia-400 stroke-current" fill="none" stroke-width="2"><path d="M21.5 2v6h-6M21.34 8a10 10 0 1 0-.45 6.13"/></svg>`
-            },
-            {
-                id: "whip_parachute",
-                title: "Frenado de látigo con paracaídas",
-                nickname: "¡Inercia Extrema!",
-                description: "Despliega el paracaídas cuando caigas a más de 30 m/s para causar una desaceleración de látigo inercial.",
-                icon: `<svg viewBox="0 0 24 24" class="w-8 h-8 text-yellow-500 stroke-current" fill="none" stroke-width="2"><path d="M12 21l-3-6-3-6h12l-3 6zM6 9s1.5-5 6-5 6 5 6 5"/></svg>`
-            }
-        ];
-
-        // --- Sistema de Persistencia Local de Logros ---
-        let unlockedAchievements = {};
-
-        function loadAchievements() {
-            try {
-                const data = localStorage.getItem('lander_achievements_v1');
-                if (data) {
-                    unlockedAchievements = JSON.parse(data);
-                } else {
-                    unlockedAchievements = {};
-                }
-            } catch (e) {
-                console.error("No se pudo cargar de localStorage", e);
-                unlockedAchievements = {};
-            }
-            updateAchievementsUI();
-        }
-
-        function saveAchievements() {
-            try {
-                localStorage.setItem('lander_achievements_v1', JSON.stringify(unlockedAchievements));
-            } catch (e) {
-                console.error("No se pudo guardar en localStorage", e);
-            }
-            updateAchievementsUI();
-        }
-
-        function unlockAchievement(id) {
-            if (unlockedAchievements[id]) return; // Ya desbloqueado
-            
-            unlockedAchievements[id] = new Date().toLocaleDateString();
-            saveAchievements();
-            
-            // Sonido de victoria retro
-            playAchievementUnlockedSound();
-            
-            // Mostrar ventana emergente (Toast) flotante
-            const ach = ACHIEVEMENTS_DATA.find(a => a.id === id);
-            if (ach) {
-                showAchievementToast(ach);
-            }
-        }
-
-        function showAchievementToast(ach) {
-            const toast = document.createElement('div');
-            toast.className = 'achievement-toast';
-            toast.innerHTML = `
-                <div class="achievement-icon">${ach.icon}</div>
-                <div>
-                    <div class="nickname">¡LOGRO DESBLOQUEADO!</div>
-                    <h4 class="text-sm font-bold text-white">${ach.title}</h4>
-                    <p class="text-xs text-green-400 font-mono">[${ach.nickname}]</p>
-                </div>
-            `;
-            ui.toastContainer.appendChild(toast);
-            
-            // Remover después de que acabe la animación CSS
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
-
-        function updateAchievementsUI() {
-            const keysList = Object.keys(unlockedAchievements);
-            const countStr = `${keysList.length}/${ACHIEVEMENTS_DATA.length}`;
-            
-            if (ui.achievementsBtnCount) ui.achievementsBtnCount.textContent = `(${countStr})`;
-            if (ui.achievementsPanelCount) ui.achievementsPanelCount.textContent = countStr;
-            
-            if (ui.achievementSummaryProgress) {
-                ui.achievementSummaryProgress.textContent = countStr;
-                const pct = (keysList.length / ACHIEVEMENTS_DATA.length) * 100;
-                ui.achievementSummaryProgressBar.style.width = `${pct}%`;
-            }
-
-            // Si el menú de logros está visible, renderizar tarjetas actualizadas
-            if (ui.achievementsPanel.style.display === 'flex') {
-                renderAchievementsGrid();
-            }
-        }
-
-        function renderAchievementsGrid() {
-            ui.achievementGrid.innerHTML = '';
-            ACHIEVEMENTS_DATA.forEach(ach => {
-                const isUnlocked = !!unlockedAchievements[ach.id];
-                const card = document.createElement('div');
-                card.className = `achievement-card ${isUnlocked ? 'unlocked' : 'locked'}`;
-                
-                card.innerHTML = `
-                    <div class="achievement-icon">
-                        ${ach.icon}
-                    </div>
-                    <div class="achievement-info">
-                        <div class="nickname">${isUnlocked ? ach.nickname : '????'}</div>
-                        <h4>${ach.title}</h4>
-                        <p>${ach.description}</p>
-                        ${isUnlocked ? `<div class="text-[9px] text-green-500 font-mono mt-1">✓ Desbloqueado: ${unlockedAchievements[ach.id]}</div>` : ''}
-                    </div>
-                `;
-                ui.achievementGrid.appendChild(card);
-            });
-        }
-
-        function toggleAchievementsMenu() {
-            tryStartMusic();
-            const isOpen = ui.achievementsPanel.style.display === 'flex';
-            if (isOpen) {
-                ui.achievementsPanel.style.display = 'none';
-            } else {
-                renderAchievementsGrid();
-                ui.achievementsPanel.style.display = 'flex';
-            }
-        }
-
-        function confirmResetAchievements() {
-            if (confirm("¿Estás seguro de que deseas borrar TODOS tus logros y reiniciar el historial? Esta acción no se puede deshacer.")) {
-                unlockedAchievements = {};
-                flightHistory = [];
-                try {
-                    localStorage.removeItem('lander_achievements_v1');
-                    localStorage.removeItem('lander_flight_history');
-                } catch(e){}
-                loadAchievements();
-                reset();
-                alert("Logros e Historial borrados.");
-            }
-        }
-
-        // --- STREAMING_CHUNK: Creando el manejador de partículas del motor y reentrada ---
-        ui.thrustRange.addEventListener('input', (e) => {
-            ui.thrustDisplay.textContent = e.target.value;
-        });
-
-        class Particle {
-            constructor(x, y, type = 'fire', vxOverride, vyOverride) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                
-                if (type === 'splash') {
-                    this.vx = vxOverride !== undefined ? vxOverride : (Math.random() - 0.5) * 8;
-                    this.vy = vyOverride !== undefined ? vyOverride : -Math.random() * 12 - 3; 
-                    this.life = Math.random() * 1.0 + 0.4;
-                    this.colors = ['#ffffff', '#aadeff', '#4682B4'];
-                } else if (type === 'reentry') {
-                    this.vx = (Math.random() - 0.5) * 6;
-                    this.vy = -Math.random() * 8 - 4;
-                    this.life = Math.random() * 0.8 + 0.3;
-                    this.colors = ['#ff3300', '#ffaa00', '#ffff00', '#ffeedd'];
-                } else {
-                    const angle = Math.random() * Math.PI * 2;
-                    let speed = (Math.random() * 20 + 5); 
-                    this.vx = Math.cos(angle) * speed;
-                    this.vy = Math.sin(angle) * speed;
-                    this.life = Math.random() * 1.2 + 0.3;
-                    this.colors = ['#ffcc00', '#ff5500', '#ff0000', '#888888', '#ffffff'];
-                }
-                
-                this.maxLife = this.life;
-                this.radius = Math.random() * 3 + 1;
-                this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
-            }
-            
-            update(dt, gravity) {
-                if (this.type === 'splash') {
-                    this.vy += gravity * dt; 
-                }
-                this.x += this.vx * dt * PIXELS_PER_METER;
-                this.y += this.vy * dt * PIXELS_PER_METER;
-                this.life -= dt;
-            }
-
-            draw() {
-                if (this.life <= 0) return;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.life / this.maxLife;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        function createExplosion(x, y) {
-            for (let i = 0; i < 60; i++) particles.push(new Particle(x, y, 'fire'));
-        }
-
-        function createSplash(x, y) {
-            for (let i = 0; i < 35; i++) {
-                particles.push(new Particle(x, y, 'splash'));
-            }
-        }
-
-        // --- STREAMING_CHUNK: Creando el paracaídas separado y los servicios de emergencia ---
-        class DetachedParachute {
-            constructor(x, y, angle, type, waterLevelY) {
-                this.x = x;
-                this.y = y;
-                this.angle = angle;
-                this.type = type; 
-                this.waterLevelY = waterLevelY;
-                this.life = 0;
-                this.parachuteYOffset = -64; 
-            }
-
-            update(dt) {
-                this.life += dt;
-                if (this.type === 'solid') {
-                    if (this.parachuteYOffset < 0) {
-                        this.parachuteYOffset += dt * 30; 
-                        this.x += dt * 10; 
-                        this.angle += dt * 0.5;
-                    }
-                } else if (this.type === 'liquid') {
-                    const absoluteY = this.y + this.parachuteYOffset;
-                    if (absoluteY < this.waterLevelY) {
-                        this.parachuteYOffset += dt * 25;
-                        this.x += dt * 5;
-                    } else {
-                        this.y = this.waterLevelY; 
-                        this.parachuteYOffset = 0; 
-                        this.x += Math.sin(globalTime) * dt * 5; 
-                    }
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y + this.parachuteYOffset);
-                ctx.rotate(this.angle);
-                
-                let alpha = Math.max(0.2, 0.85 - (this.life * 0.1));
-                
-                if (this.parachuteYOffset >= 0 && this.type === 'solid') {
-                    ctx.scale(1, 0.2); 
-                } else if (this.parachuteYOffset >= 0 && this.type === 'liquid') {
-                    ctx.scale(1.2, 0.3); 
-                }
-
-                ctx.beginPath();
-                ctx.arc(0, 0, 35, Math.PI, 0); 
-                ctx.fillStyle = `rgba(255, 80, 20, ${alpha})`;
-                ctx.fill();
-                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                
-                ctx.restore();
-            }
-        }
-
-        class RescueHelicopter {
-            constructor(side, targetX, targetY) {
-                this.x = side === 'left' ? -100 : gameWidth + 100;
-                this.y = 100;
-                this.targetX = targetX;
-                this.targetY = targetY - 120; 
-                this.speed = 120; 
-                this.propellerAngle = 0;
-                this.state = 'flying'; 
-                this.timer = 0;
-                this.soldiersDeployed = false;
-            }
-
-            update(dt) {
-                this.propellerAngle += dt * 40;
-                
-                if (this.state === 'flying') {
-                    let dx = this.targetX - this.x;
-                    let dy = this.targetY - this.y;
-                    let dist = Math.hypot(dx, dy);
-                    if (dist < 5) {
-                        this.state = 'hovering';
-                        this.timer = 0;
-                    } else {
-                        this.x += (dx / dist) * this.speed * dt;
-                        this.y += (dy / dist) * this.speed * dt;
-                    }
-                } else if (this.state === 'hovering') {
-                    this.timer += dt;
-                    this.y += Math.sin(globalTime * 3) * 0.3;
-                    
-                    if (this.timer > 1.5 && !this.soldiersDeployed) {
-                        this.soldiersDeployed = true;
-                        if (ui.envSelect.value === 'earth') {
-                            rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 120));
-                            setTimeout(() => {
-                                if (gameOver && ui.envSelect.value === 'earth') {
-                                    rescueSoldiers.push(new RescueSoldier(this.x - 15, this.y + 10, this.targetY + 120));
-                                }
-                            }, 800);
-                        } else if (ui.envSelect.value === 'water') {
-                            rescueSoldiers.push(new RescueSoldier(this.x, this.y + 10, this.targetY + 115, true));
-                        }
-                    }
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                
-                if (this.state === 'hovering' && this.soldiersDeployed) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, 10);
-                    ctx.lineTo(0, 120);
-                    ctx.strokeStyle = '#666';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#1c3d1c'; 
-                ctx.beginPath();
-                ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#4ae';
-                ctx.beginPath();
-                ctx.arc(15, -2, 5, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(-20, 0);
-                ctx.lineTo(-45, -5);
-                ctx.lineTo(-45, -12);
-                ctx.lineTo(-40, 0);
-                ctx.fillStyle = '#1c3d1c';
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(-45, -8);
-                ctx.rotate(this.propellerAngle);
-                ctx.beginPath();
-                ctx.moveTo(-8, 0); ctx.lineTo(8, 0);
-                ctx.strokeStyle = '#aaa';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-
-                ctx.save();
-                ctx.translate(0, -14);
-                let rotorX = Math.cos(this.propellerAngle) * 35;
-                ctx.beginPath();
-                ctx.moveTo(-rotorX, 0);
-                ctx.lineTo(rotorX, 0);
-                ctx.strokeStyle = '#ccc';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                ctx.restore();
-
-                ctx.beginPath();
-                ctx.moveTo(0, -12);
-                ctx.lineTo(0, -6);
-                ctx.strokeStyle = '#555';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(-15, 12); ctx.lineTo(-15, 17);
-                ctx.moveTo(15, 12); ctx.lineTo(15, 17);
-                ctx.moveTo(-22, 17); ctx.lineTo(22, 17);
-                ctx.strokeStyle = '#777';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                if (Math.floor(globalTime * 5) % 2 === 0) {
-                    ctx.beginPath();
-                    ctx.arc(-20, -5, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = '#f00';
-                    ctx.fill();
-                }
-
-                ctx.restore();
-            }
-        }
-
-        class RescueSoldier {
-            constructor(startX, startY, groundY, inBasket = false) {
-                this.x = startX;
-                this.y = startY;
-                this.groundY = groundY;
-                this.speed = 40; 
-                this.state = 'descending'; 
-                this.inBasket = inBasket;
-                this.walkOffset = 0;
-            }
-
-            update(dt) {
-                if (this.state === 'descending') {
-                    if (this.y < this.groundY - 12) {
-                        this.y += this.speed * dt;
-                    } else {
-                        this.state = 'securing';
-                    }
-                } else if (this.state === 'securing') {
-                    let targetX = lander.x + (this.x < lander.x ? -20 : 20);
-                    let dx = targetX - this.x;
-                    if (Math.abs(dx) > 2) {
-                        this.x += Math.sign(dx) * 15 * dt;
-                        this.walkOffset = Math.sin(globalTime * 10) * 2;
-                    }
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-
-                if (this.inBasket) {
-                    ctx.strokeStyle = '#ffcc00';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.rect(-8, -4, 16, 8);
-                    ctx.stroke();
-                    ctx.beginPath();
-                    ctx.moveTo(-8, -4); ctx.lineTo(0, -15);
-                    ctx.lineTo(8, -4);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#ffcc99';
-                ctx.beginPath();
-                ctx.arc(0, -10 + this.walkOffset, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#2d5a27';
-                ctx.beginPath();
-                ctx.arc(0, -11 + this.walkOffset, 3.5, Math.PI, 0);
-                ctx.fill();
-
-                ctx.fillStyle = '#3a6629';
-                ctx.fillRect(-3, -7 + this.walkOffset, 6, 8);
-
-                ctx.fillStyle = '#1f3a18';
-                ctx.fillRect(-3, 1 + this.walkOffset, 2, 4);
-                ctx.fillRect(1, 1 + this.walkOffset, 2, 4);
-
-                ctx.restore();
-            }
-        }
-
-        class RescueAmbulance {
-            constructor(side, targetX, groundY) {
-                this.x = side === 'left' ? -80 : gameWidth + 80;
-                this.y = groundY - 16;
-                this.targetX = targetX + (side === 'left' ? -55 : 55);
-                this.speed = 100;
-                this.side = side;
-                this.active = true;
-            }
-
-            update(dt) {
-                let dx = this.targetX - this.x;
-                if (Math.abs(dx) > 4) {
-                    this.x += Math.sign(dx) * this.speed * dt;
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-
-                ctx.fillStyle = 'rgba(0,0,0,0.3)';
-                ctx.fillRect(-22, 14, 44, 4);
-
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.roundRect(-20, -5, 40, 18, 3);
-                ctx.fill();
-                ctx.strokeStyle = '#aaa';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#eee';
-                if (this.side === 'left') {
-                    ctx.fillRect(8, -5, 12, 10);
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(13, -3, 6, 5); 
-                } else {
-                    ctx.fillRect(-20, -5, 12, 10);
-                    ctx.fillStyle = '#333';
-                    ctx.fillRect(-19, -3, 6, 5); 
-                }
-
-                ctx.fillStyle = '#f00';
-                ctx.fillRect(-3, 1, 6, 2);
-                ctx.fillRect(-1, -1, 2, 6);
-
-                ctx.fillStyle = '#111';
-                ctx.beginPath();
-                ctx.arc(-12, 14, 4, 0, Math.PI * 2);
-                ctx.arc(12, 14, 4, 0, Math.PI * 2);
-                ctx.fill();
-
-                if (Math.floor(globalTime * 8) % 2 === 0) {
-                    ctx.beginPath();
-                    ctx.arc(-5, -7, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = '#05f';
-                    ctx.fill();
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(5, -7, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = '#f00';
-                    ctx.fill();
-                }
-
-                ctx.restore();
-            }
-        }
-
-        class RescueBoat {
-            constructor(side, targetX) {
-                this.x = side === 'left' ? -80 : gameWidth + 80;
-                this.targetX = targetX + (side === 'left' ? -45 : 45);
-                this.speed = 65;
-                this.side = side;
-                this.y = getWaterLevel(this.x);
-            }
-
-            update(dt) {
-                this.y = getWaterLevel(this.x) - 4;
-                let dx = this.targetX - this.x;
-                if (Math.abs(dx) > 5) {
-                    this.x += Math.sign(dx) * this.speed * dt;
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-
-                let angle = Math.sin(this.x * 0.05 + globalTime * 3) * 0.1;
-                ctx.rotate(angle);
-
-                ctx.fillStyle = '#ff4500'; 
-                ctx.beginPath();
-                if (this.side === 'left') {
-                    ctx.moveTo(-18, -4);
-                    ctx.lineTo(10, -4);
-                    ctx.lineTo(20, 4);
-                    ctx.lineTo(-18, 4);
-                } else {
-                    ctx.moveTo(18, -4);
-                    ctx.lineTo(-10, -4);
-                    ctx.lineTo(-20, 4);
-                    ctx.lineTo(18, 4);
-                }
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.stroke();
-
-                ctx.fillStyle = '#ddd';
-                ctx.fillRect(-10, -8, 8, 4);
-                ctx.fillStyle = '#111';
-                ctx.fillRect(-15, -12, 4, 8); 
-
-                ctx.beginPath();
-                ctx.arc(0, 0, 3, 0, Math.PI*2);
-                ctx.fillStyle = '#fff';
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(0, 0, 1.5, 0, Math.PI*2);
-                ctx.fillStyle = '#ff4500';
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(-12, -8); ctx.lineTo(-12, -20);
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                
-                ctx.fillStyle = '#f00';
-                ctx.beginPath();
-                ctx.moveTo(-12, -20); ctx.lineTo(-4, -17); ctx.lineTo(-12, -14);
-                ctx.fill();
-
-                ctx.restore();
-            }
-        }
-
-        class MoonAstronaut {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.targetX = x + 35;
-                this.state = 'descending'; 
-                this.timer = 0;
-                this.walkCycle = 0;
-                this.flagPlanted = false;
-            }
-
-            update(dt) {
-                if (this.state === 'descending') {
-                    this.timer += dt;
-                    if (this.timer > 1.0) {
-                        this.state = 'walking';
-                    }
-                } else if (this.state === 'walking') {
-                    let dx = this.targetX - this.x;
-                    if (Math.abs(dx) > 1) {
-                        this.x += 10 * dt;
-                        this.walkCycle += 12 * dt;
-                    } else {
-                        this.state = 'flagging';
-                        this.timer = 0;
-                    }
-                } else if (this.state === 'flagging') {
-                    this.timer += dt;
-                    if (this.timer > 2.0) {
-                        this.flagPlanted = true;
-                        this.state = 'saluting';
-                    }
-                }
-            }
-
-            draw() {
-                if (this.flagPlanted) {
-                    ctx.save();
-                    ctx.translate(this.targetX + 12, this.y + 10);
-                    ctx.beginPath();
-                    ctx.moveTo(0, -30);
-                    ctx.lineTo(0, 2);
-                    ctx.strokeStyle = '#eee';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    ctx.fillStyle = '#0052cc';
-                    ctx.fillRect(0, -30, 20, 12);
-                    ctx.beginPath();
-                    ctx.arc(8, -24, 3, 0, Math.PI*2);
-                    ctx.fillStyle = '#fff';
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                ctx.save();
-                ctx.translate(this.x, this.y + 10);
-
-                let bounceY = Math.abs(Math.sin(this.walkCycle)) * -2;
-                if (this.state === 'descending') {
-                    bounceY = -4; 
-                    ctx.globalAlpha = 0.5;
-                }
-
-                ctx.fillStyle = '#f0f0f0';
-                ctx.beginPath();
-                ctx.arc(0, -12 + bounceY, 4, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#dfaa00';
-                ctx.beginPath();
-                ctx.arc(1, -12 + bounceY, 2, -Math.PI/2, Math.PI/2);
-                ctx.fill();
-
-                ctx.fillStyle = '#ccc';
-                ctx.fillRect(-5, -9 + bounceY, 3, 7);
-
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(-3, -8 + bounceY, 6, 8);
-
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                if (this.state === 'saluting') {
-                    ctx.beginPath();
-                    ctx.moveTo(3, -5 + bounceY);
-                    ctx.lineTo(8, -12 + bounceY);
-                    ctx.stroke();
-                } else {
-                    ctx.beginPath();
-                    ctx.moveTo(3, -5 + bounceY);
-                    ctx.lineTo(6, -2 + bounceY);
-                    ctx.stroke();
-                }
-
-                ctx.fillStyle = '#eee';
-                let legL = Math.sin(this.walkCycle) * 3;
-                let legR = -Math.sin(this.walkCycle) * 3;
-                if (this.state !== 'walking') { legL = 0; legR = 0; }
-                ctx.fillRect(-3, 0 + bounceY, 2, 4 + legL);
-                ctx.fillRect(1, 0 + bounceY, 2, 4 + legR);
-
-                ctx.restore();
-            }
-        }
-
-        class MarsRover {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y + 10;
-                this.targetX = x + 40;
-                this.state = 'unboarding'; 
-                this.timer = 0;
-                this.wheelRotation = 0;
-            }
-
-            update(dt) {
-                if (this.state === 'unboarding') {
-                    this.timer += dt;
-                    if (this.timer > 1.2) {
-                        this.state = 'driving';
-                    }
-                } else if (this.state === 'driving') {
-                    let dx = this.targetX - this.x;
-                    if (Math.abs(dx) > 1) {
-                        this.x += 12 * dt;
-                        this.wheelRotation += 8 * dt;
-                    }
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-
-                if (this.state === 'unboarding') {
-                    ctx.globalAlpha = 0.6;
-                }
-
-                ctx.fillStyle = 'rgba(0,0,0,0.4)';
-                ctx.fillRect(-12, 10, 24, 3);
-
-                ctx.fillStyle = '#d4af37';
-                ctx.fillRect(-10, -3, 20, 8);
-                ctx.strokeStyle = '#555';
-                ctx.strokeRect(-10, -3, 20, 8);
-
-                ctx.fillStyle = '#000033';
-                ctx.fillRect(-12, -5, 24, 2);
-
-                ctx.beginPath();
-                ctx.moveTo(4, -3);
-                ctx.lineTo(4, -14);
-                ctx.strokeStyle = '#888';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.fillStyle = '#111';
-                ctx.fillRect(2, -17, 5, 3);
-                ctx.beginPath();
-                ctx.arc(6, -15, 1, 0, Math.PI*2);
-                ctx.fillStyle = '#f00'; 
-                ctx.fill();
-
-                ctx.fillStyle = '#333';
-                const wheelPositions = [-8, 0, 8];
-                wheelPositions.forEach(wx => {
-                    ctx.save();
-                    ctx.translate(wx, 8);
-                    ctx.rotate(this.wheelRotation);
-                    ctx.beginPath();
-                    ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.beginPath();
-                    ctx.moveTo(-3, 0); ctx.lineTo(3, 0);
-                    ctx.moveTo(0, -3); ctx.lineTo(0, 3);
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-                    ctx.restore();
-                });
-
-                ctx.restore();
-            }
-        }
-
-        // --- STREAMING_CHUNK: Implementando la simulación física de la nave Lander ---
-        class Lander {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.width = 24; 
-                this.height = 24; 
-                
-                this.vx = 8.0; 
-                this.vy = 0.0; 
-                this.angle = 0.0; 
-                this.angularVelocity = 0.0; 
-                
-                this.dryMass = 1000; 
-                this.fuelMass = 500; 
-                this.momentOfInertia = 2500; 
-                
-                this.mainEngineFuelRate = 10; 
-                this.rcsTorque = 1500; 
-                this.rcsFuelRate = 2; 
-                
-                this.crashed = false;
-                this.landed = false;
-                this.thrusting = false;
-                this.rcsLeft = false;
-                this.rcsRight = false;
-                
-                this.parachuteDeployed = false; 
-                this.inWater = false;
-                this.detachedParachute = null;
-
-                // Variables para seguimiento de logros
-                this.maxAltitudeReached = 0;
-                this.maxHorizontalSpeedReached = 0;
-                this.cumulativeRotation = 0; 
-                this.parachuteWasUsed = false;
-                this.highSpeedWhipAttempted = false;
-            }
-
-            get totalMass() { return this.dryMass + this.fuelMass; }
-
-            update(dt) {
-                if (this.crashed || this.landed) {
-                    if (this.detachedParachute) this.detachedParachute.update(dt);
-                    
-                    if (this.landed && this.inWater) {
-                        const env = ENVIRONMENTS[ui.envSelect.value];
-                        if (env.type === 'liquid') {
-                            const targetY = getWaterLevel(this.x) - this.height/2 + 5;
-                            this.y += (targetY - this.y) * dt * 5;
-                            this.angle = Math.sin(globalTime * 2) * 0.05; 
-                        }
-                    }
-                    return;
-                }
-
-                const env = ENVIRONMENTS[ui.envSelect.value];
-                const currentGravity = env.gravity;
-                const maxThrustForce = parseFloat(ui.thrustRange.value); 
-
-                let forceX = 0;
-                let forceY = this.totalMass * currentGravity; 
-                let netTorque = 0;
-
-                // Propulsión
-                this.thrusting = keys['ArrowUp'] && this.fuelMass > 0;
-                if (this.thrusting) {
-                    forceX += Math.sin(this.angle) * maxThrustForce;
-                    forceY -= Math.cos(this.angle) * maxThrustForce; 
-                    this.fuelMass -= this.mainEngineFuelRate * dt;
-                }
-
-                // RCS
-                this.rcsLeft = keys['ArrowRight'] && this.fuelMass > 0; 
-                this.rcsRight = keys['ArrowLeft'] && this.fuelMass > 0; 
-                
-                if (this.rcsLeft) {
-                    netTorque += this.rcsTorque;
-                    this.fuelMass -= this.rcsFuelRate * dt;
-                }
-                if (this.rcsRight) {
-                    netTorque -= this.rcsTorque;
-                    this.fuelMass -= this.rcsFuelRate * dt;
-                }
-                if (this.fuelMass < 0) this.fuelMass = 0;
-
-                // Logro 12: Usa toda la energía (combustible = 0)
-                if (this.fuelMass === 0) {
-                    unlockAchievement('fuel_depleted');
-                }
-
-                // Paracaídas Atmosférico
-                if (this.parachuteDeployed && env.hasAtmosphere) {
-                    const dragCoefficientY = 4200; 
-                    const dragCoefficientX = 1500;
-                    if (this.vy > 0) forceY -= dragCoefficientY * (this.vy * this.vy);
-                    if (Math.abs(this.vx) > 0) forceX -= dragCoefficientX * (this.vx * this.vx) * Math.sign(this.vx);
-                    netTorque -= (this.angularVelocity * 10000); 
-                }
-
-                // Físicas de Acuatizaje
-                if (env.type === 'liquid') {
-                    const waterY = getWaterLevel(this.x);
-                    const bottomY = this.y + this.height / 2;
-                    
-                    if (bottomY > waterY) {
-                        this.inWater = true;
-                        const depth = bottomY - waterY;
-                        const subFraction = Math.min(Math.max(depth / this.height, 0), 1.0);
-                        const buoyancyForce = (this.totalMass * currentGravity * 1.2) * subFraction;
-                        forceY -= buoyancyForce;
-
-                        const waterDrag = 25000 * subFraction;
-                        forceY -= waterDrag * this.vy * Math.abs(this.vy);
-                        forceX -= waterDrag * this.vx * Math.abs(this.vx);
-                        netTorque -= (this.angularVelocity * 30000) * subFraction;
-                    } else {
-                        this.inWater = false;
-                    }
-                } else {
-                    this.inWater = false;
-                }
-
-                // Cinemática (Método Euler)
-                const ax = forceX / this.totalMass;
-                const ay = forceY / this.totalMass;
-                const alpha = netTorque / this.momentOfInertia;
-
-                this.vx += ax * dt;
-                this.vy += ay * dt;
-                
-                // Seguir ángulo anterior antes del cálculo del giro 360°
-                const prevAngle = this.angle;
-                this.angularVelocity += alpha * dt;
-                this.angularVelocity *= 0.99; 
-
-                this.x += this.vx * dt * PIXELS_PER_METER;
-                this.y += this.vy * dt * PIXELS_PER_METER;
-                this.angle += this.angularVelocity * dt;
-
-                // Acumular rotación angular para Logro 14: Giro de 360 grados
-                const angleDiff = this.angle - prevAngle;
-                this.cumulativeRotation += angleDiff;
-                if (Math.abs(this.cumulativeRotation) >= Math.PI * 2) {
-                    unlockAchievement('flip_360');
-                }
-
-                if (this.x < 0) this.x = gameWidth;
-                if (this.x > gameWidth) this.x = 0;
-
-                // --- EFECTO DE INCENDIO POR ALTA VELOCIDAD Y LOGRO 7 ---
-                if (env.hasAtmosphere && this.vy > 12) {
-                    for (let i = 0; i < 3; i++) {
-                        particles.push(new Particle(
-                            this.x + (Math.random() - 0.5) * this.width,
-                            this.y + this.height/2,
-                            'reentry'
-                        ));
-                    }
-                    // Si la velocidad vertical de caída supera 26 m/s en la atmósfera, incendiamos la nave
-                    if (this.vy > 25) {
-                        unlockAchievement('atmosphere_fire');
-                    }
-                }
-
-                // Guardar máximas métricas del vuelo actual para logros
-                const envY = env.type === 'solid' ? getTerrainYAt(this.x) : getWaterLevel(this.x);
-                let altitudReal = (envY - (this.y + this.height/2 + 5)) / PIXELS_PER_METER;
-                if (altitudReal < 0 && env.type === 'solid') altitudReal = 0;
-
-                // Escalar altura para hacer alcanzable el logro de los 30,000 metros al salir arriba
-                // Si la nave sale de la pantalla superior, incrementamos la altura simulada de manera parabólica
-                let simulatedAltitude = altitudReal;
-                if (this.y < 0) {
-                    simulatedAltitude = altitudReal + (Math.pow(Math.abs(this.y), 1.6));
-                }
-
-                if (simulatedAltitude > this.maxAltitudeReached) {
-                    this.maxAltitudeReached = simulatedAltitude;
-                }
-                // Logro 9: Alcanza la altura de 30,000 metros
-                if (this.maxAltitudeReached >= 30000) {
-                    unlockAchievement('height_30k');
-                }
-
-                // Logro 10: Velocidad X extrema de 1000 m/s
-                // Escalamos un poco para premiar el esfuerzo de propulsión horizontal en entornos de baja gravedad
-                const horizontalSpeedKms = Math.abs(this.vx) * 35; // Factor de escala para que 1000 m/s sea alcanzable y divertido
-                if (horizontalSpeedKms > this.maxHorizontalSpeedReached) {
-                    this.maxHorizontalSpeedReached = horizontalSpeedKms;
-                }
-                if (this.maxHorizontalSpeedReached >= 1000) {
-                    unlockAchievement('speed_x_1000');
-                }
-            }
-
-            draw() {
-                if (this.detachedParachute) this.detachedParachute.draw();
-
-                if (this.crashed) return;
-
-                if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
-                    ctx.save();
-                    ctx.translate(this.x, this.y);
-                    let glowIntensity = Math.min((this.vy - 12) / 10, 1.0);
-                    ctx.beginPath();
-                    ctx.arc(0, this.height/2 - 2, this.width, 0, Math.PI);
-                    ctx.fillStyle = `rgba(255, 90, 0, ${glowIntensity * 0.4})`;
-                    ctx.shadowColor = '#ff3300';
-                    ctx.shadowBlur = 15;
-                    ctx.fill();
-                    ctx.restore();
-                }
-
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
-                
-                if (this.thrusting) {
-                    const flameLength = this.height / 2 + Math.random() * 20 + 15;
-                    ctx.beginPath();
-                    ctx.moveTo(-this.width / 3, this.height / 2);
-                    ctx.lineTo(this.width / 3, this.height / 2);
-                    ctx.lineTo(0, flameLength);
-                    ctx.closePath();
-                    ctx.fillStyle = `rgba(255, ${Math.random()*100+150}, 0, 0.9)`;
-                    ctx.fill();
-                }
-
-                if (this.rcsLeft) { 
-                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`;
-                    ctx.beginPath();
-                    ctx.moveTo(-this.width/2, -this.height/4);
-                    ctx.lineTo(-this.width/2 - 10 - Math.random()*5, -this.height/4 + 3);
-                    ctx.lineTo(-this.width/2, -this.height/4 + 6);
-                    ctx.fill();
-                }
-                if (this.rcsRight) {
-                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`;
-                    ctx.beginPath();
-                    ctx.moveTo(this.width/2, -this.height/4);
-                    ctx.lineTo(this.width/2 + 10 + Math.random()*5, -this.height/4 + 3);
-                    ctx.lineTo(this.width/2, -this.height/4 + 6);
-                    ctx.fill();
-                }
-
-                ctx.beginPath();
-                ctx.moveTo(0, -this.height / 2); 
-                ctx.lineTo(-this.width / 2, this.height / 2); 
-                ctx.lineTo(this.width / 2, this.height / 2); 
-                ctx.closePath();
-                ctx.fillStyle = '#ccc';
-                ctx.fill();
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(-this.width/2, this.height/2);
-                ctx.lineTo(-this.width/2 - 5, this.height/2 + 5);
-                ctx.moveTo(this.width/2, this.height/2);
-                ctx.lineTo(this.width/2 + 5, this.height/2 + 5);
-                ctx.strokeStyle = '#888';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(0, -2, 5, 0, Math.PI * 2);
-                ctx.fillStyle = '#0ff';
-                ctx.fill();
-
-                const env = ENVIRONMENTS[ui.envSelect.value];
-                if (this.parachuteDeployed && env.hasAtmosphere && !this.landed) {
-                    ctx.save();
-                    ctx.rotate(-this.angle * 0.8); 
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, -this.height/2);
-                    ctx.lineTo(-30, -this.height - 40);
-                    ctx.moveTo(0, -this.height/2);
-                    ctx.lineTo(30, -this.height - 40);
-                    ctx.moveTo(0, -this.height/2);
-                    ctx.lineTo(0, -this.height - 45);
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.beginPath();
-                    ctx.arc(0, -this.height - 40, 35, Math.PI, 0); 
-                    ctx.fillStyle = 'rgba(255, 80, 20, 0.85)';
-                    ctx.fill();
-                    ctx.strokeStyle = '#fff';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                    
-                    ctx.restore();
-                }
-
-                ctx.restore();
-            }
-            
-            detachParachute(envType) {
-                if (this.parachuteDeployed) {
-                    this.parachuteDeployed = false;
-                    const waterLevel = getWaterLevel(this.x);
-                    this.detachedParachute = new DetachedParachute(this.x, this.y, this.angle, envType, waterLevel);
-                }
-            }
-        }
-
-        // --- STREAMING_CHUNK: Creando el generador y detector de colisiones del terreno ---
-        function generateTerrain() {
-            terrain = [];
-            const roughness = 0.4;
-            let y = gameHeight * 0.7;
-            const segmentCount = 60;
-            const segmentWidth = gameWidth / segmentCount;
-            const padIndex = Math.floor(Math.random() * (segmentCount - 15)) + 5; 
-            
-            terrain.push({ x: 0, y: y });
-            for (let i = 1; i <= segmentCount; i++) {
-                if (i >= padIndex && i <= padIndex + 6) { 
-                    if (i === padIndex) {
-                        landingPad.x = terrain[terrain.length - 1].x;
-                        landingPad.y = y;
-                        landingPad.width = segmentWidth * 6; 
-                    }
-                    terrain.push({ x: i * segmentWidth, y: y });
-                } else {
-                    y += (Math.random() - 0.5) * segmentWidth * roughness * 3;
-                    if (y > gameHeight - 30) y = gameHeight - 30;
-                    if (y < gameHeight / 2 + 50) y = gameHeight / 2 + 50;
-                    terrain.push({ x: i * segmentWidth, y: y });
-                }
-            }
-        }
+        ui.thrustRange.addEventListener('input', (e) => ui.thrustDisplay.textContent = e.target.value);
 
         function getTerrainYAt(x) {
             if (x < 0) return terrain[0].y;
@@ -1747,42 +735,594 @@
             return baseLevel + wave1 + wave2;
         }
 
+        function getRealAltitude(x, bottomY) {
+            const env = ENVIRONMENTS[ui.envSelect.value];
+            let groundY = env.type === 'solid' ? getTerrainYAt(x) : getWaterLevel(x);
+            let alt = (groundY - bottomY) / PIXELS_PER_METER;
+            return Math.max(0, alt);
+        }
+
+        class Particle {
+            constructor(x, y, type = 'fire', vxOverride, vyOverride) {
+                this.x = x; this.y = y; this.type = type;
+                if (type === 'splash') {
+                    this.vx = vxOverride !== undefined ? vxOverride : (Math.random() - 0.5) * 8;
+                    this.vy = vyOverride !== undefined ? vyOverride : -Math.random() * 12 - 3; 
+                    this.life = Math.random() * 1.0 + 0.4;
+                    this.colors = ['#ffffff', '#aadeff', '#4682B4'];
+                } else if (type === 'reentry') {
+                    this.vx = (Math.random() - 0.5) * 6;
+                    this.vy = -Math.random() * 8 - 4;
+                    this.life = Math.random() * 0.8 + 0.3;
+                    this.colors = ['#ff3300', '#ffaa00', '#ffff00', '#ffeedd'];
+                } else {
+                    const angle = Math.random() * Math.PI * 2;
+                    let speed = (Math.random() * 20 + 5); 
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed;
+                    this.life = Math.random() * 1.2 + 0.3;
+                    this.colors = ['#ffcc00', '#ff5500', '#ff0000', '#888888', '#ffffff'];
+                }
+                this.maxLife = this.life;
+                this.radius = Math.random() * 3 + 1;
+                this.color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            }
+            update(dt, gravity) {
+                if (this.type === 'splash') this.vy += gravity * dt; 
+                this.x += this.vx * dt * PIXELS_PER_METER;
+                this.y += this.vy * dt * PIXELS_PER_METER;
+                this.life -= dt;
+            }
+            draw() {
+                if (this.life <= 0) return;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.life / this.maxLife;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createExplosion(x, y) { for (let i = 0; i < 60; i++) particles.push(new Particle(x, y, 'fire')); }
+        function createSplash(x, y) { for (let i = 0; i < 35; i++) particles.push(new Particle(x, y, 'splash')); }
+
+        class DetachedParachute {
+            constructor(x, y, angle, type, waterLevelY) {
+                this.x = x; this.y = y; this.angle = angle; this.type = type; 
+                this.waterLevelY = waterLevelY; this.life = 0; this.parachuteYOffset = -64; 
+            }
+            update(dt) {
+                this.life += dt;
+                if (this.type === 'solid') {
+                    if (this.parachuteYOffset < 0) {
+                        this.parachuteYOffset += dt * 30; this.x += dt * 10; this.angle += dt * 0.5;
+                    }
+                } else if (this.type === 'liquid') {
+                    const absoluteY = this.y + this.parachuteYOffset;
+                    if (absoluteY < this.waterLevelY) {
+                        this.parachuteYOffset += dt * 25; this.x += dt * 5;
+                    } else {
+                        this.y = this.waterLevelY; this.parachuteYOffset = 0; this.x += Math.sin(globalTime) * dt * 5; 
+                    }
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y + this.parachuteYOffset);
+                ctx.rotate(this.angle);
+                let alpha = Math.max(0.2, 0.85 - (this.life * 0.1));
+                if (this.parachuteYOffset >= 0 && this.type === 'solid') ctx.scale(1, 0.2); 
+                else if (this.parachuteYOffset >= 0 && this.type === 'liquid') ctx.scale(1.2, 0.3); 
+                ctx.beginPath(); ctx.arc(0, 0, 35, Math.PI, 0); 
+                ctx.fillStyle = `rgba(255, 80, 20, ${alpha})`; ctx.fill();
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class Lander {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.width = 28; this.height = 28; 
+                this.vx = 8.0; this.vy = 0.0; this.angle = 0.0; this.angularVelocity = 0.0; 
+                this.dryMass = 1000; this.fuelMass = 500; this.momentOfInertia = 2500; 
+                this.mainEngineFuelRate = 10; this.rcsTorque = 1500; this.rcsFuelRate = 2; 
+                
+                this.crashed = false; this.landed = false; this.thrusting = false;
+                this.rcsLeft = false; this.rcsRight = false;
+                this.parachuteDeployed = false; this.inWater = false; this.detachedParachute = null;
+            }
+
+            get totalMass() { return this.dryMass + this.fuelMass; }
+
+            update(dt) {
+                if (this.crashed || this.landed) {
+                    if (this.detachedParachute) this.detachedParachute.update(dt);
+                    if (this.landed && this.inWater && ENVIRONMENTS[ui.envSelect.value].type === 'liquid') {
+                        const targetY = getWaterLevel(this.x) - this.height/2 + 5;
+                        this.y += (targetY - this.y) * dt * 5;
+                        this.angle = Math.sin(globalTime * 2) * 0.05; 
+                    }
+                    return;
+                }
+
+                const env = ENVIRONMENTS[ui.envSelect.value];
+                const currentGravity = env.gravity;
+                const maxThrustForce = parseFloat(ui.thrustRange.value); 
+
+                let forceX = 0; let forceY = this.totalMass * currentGravity; let netTorque = 0;
+
+                this.thrusting = keys['ArrowUp'] && this.fuelMass > 0;
+                if (this.thrusting) {
+                    forceX += Math.sin(this.angle) * maxThrustForce;
+                    forceY -= Math.cos(this.angle) * maxThrustForce; 
+                    this.fuelMass -= this.mainEngineFuelRate * dt;
+                }
+
+                this.rcsLeft = keys['ArrowRight'] && this.fuelMass > 0; 
+                this.rcsRight = keys['ArrowLeft'] && this.fuelMass > 0; 
+                if (this.rcsLeft) { netTorque += this.rcsTorque; this.fuelMass -= this.rcsFuelRate * dt; }
+                if (this.rcsRight) { netTorque -= this.rcsTorque; this.fuelMass -= this.rcsFuelRate * dt; }
+                if (this.fuelMass < 0) this.fuelMass = 0;
+
+                if (this.parachuteDeployed && env.hasAtmosphere) {
+                    const dragCoefficientY = 4200; const dragCoefficientX = 1500;
+                    if (this.vy > 0) forceY -= dragCoefficientY * (this.vy * this.vy);
+                    if (Math.abs(this.vx) > 0) forceX -= dragCoefficientX * (this.vx * this.vx) * Math.sign(this.vx);
+                    netTorque -= (this.angularVelocity * 10000); 
+                }
+
+                if (env.type === 'liquid') {
+                    const waterY = getWaterLevel(this.x);
+                    const bottomY = this.y + this.height / 2 + 10;
+                    if (bottomY > waterY) {
+                        this.inWater = true;
+                        const depth = bottomY - waterY;
+                        const subFraction = Math.min(Math.max(depth / this.height, 0), 1.0);
+                        const buoyancyForce = (this.totalMass * currentGravity * 1.2) * subFraction;
+                        forceY -= buoyancyForce;
+                        const waterDrag = 25000 * subFraction;
+                        forceY -= waterDrag * this.vy * Math.abs(this.vy);
+                        forceX -= waterDrag * this.vx * Math.abs(this.vx);
+                        netTorque -= (this.angularVelocity * 30000) * subFraction;
+                    } else { this.inWater = false; }
+                } else { this.inWater = false; }
+
+                const ax = forceX / this.totalMass;
+                const ay = forceY / this.totalMass;
+                const alpha = netTorque / this.momentOfInertia;
+
+                this.vx += ax * dt; this.vy += ay * dt; this.angularVelocity += alpha * dt;
+                this.angularVelocity *= 0.99; 
+
+                this.x += this.vx * dt * PIXELS_PER_METER;
+                this.y += this.vy * dt * PIXELS_PER_METER;
+                this.angle += this.angularVelocity * dt;
+
+                if (this.x < 0) this.x = gameWidth;
+                if (this.x > gameWidth) this.x = 0;
+
+                if (this.vy > maxSpeedReachedThisFlight) maxSpeedReachedThisFlight = this.vy;
+
+                if ((env.name === 'TIERRA' || env.name === 'OCÉANO') && this.vy > 12) {
+                    for (let i = 0; i < 3; i++) {
+                        particles.push(new Particle(this.x + (Math.random() - 0.5) * this.width, this.y + this.height/2, 'reentry'));
+                    }
+                }
+            }
+
+            draw() {
+                if (this.detachedParachute) this.detachedParachute.draw();
+                if (this.crashed) return;
+
+                if ((ui.envSelect.value === 'earth' || ui.envSelect.value === 'water') && this.vy > 12) {
+                    ctx.save(); ctx.translate(this.x, this.y);
+                    let glowIntensity = Math.min((this.vy - 12) / 10, 1.0);
+                    ctx.beginPath(); ctx.arc(0, this.height/2 - 2, this.width, 0, Math.PI);
+                    ctx.fillStyle = `rgba(255, 90, 0, ${glowIntensity * 0.4})`;
+                    ctx.shadowColor = '#ff3300'; ctx.shadowBlur = 15; ctx.fill(); ctx.restore();
+                }
+
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.angle);
+                
+                if (this.thrusting) {
+                    const flameLength = this.height / 2 + Math.random() * 20 + 15;
+                    ctx.beginPath(); ctx.moveTo(-this.width / 4, this.height / 2);
+                    ctx.lineTo(this.width / 4, this.height / 2); ctx.lineTo(0, flameLength); ctx.closePath();
+                    ctx.fillStyle = `rgba(255, ${Math.random()*100+150}, 0, 0.9)`; ctx.fill();
+                }
+
+                if (this.rcsLeft) { 
+                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`; ctx.beginPath();
+                    ctx.moveTo(-this.width/2, -this.height/4); ctx.lineTo(-this.width/2 - 12 - Math.random()*5, -this.height/4 - 3);
+                    ctx.lineTo(-this.width/2 - 12 - Math.random()*5, -this.height/4 + 4); ctx.fill();
+                }
+                if (this.rcsRight) {
+                    ctx.fillStyle = `rgba(200, 255, 255, 0.8)`; ctx.beginPath();
+                    ctx.moveTo(this.width/2, -this.height/4); ctx.lineTo(this.width/2 + 12 + Math.random()*5, -this.height/4 - 3);
+                    ctx.lineTo(this.width/2 + 12 + Math.random()*5, -this.height/4 + 4); ctx.fill();
+                }
+
+                // --- Módulo Lunar Apolo ---
+                
+                // 1. Etapa de Descenso (Octágono/Caja Dorada)
+                ctx.fillStyle = '#B8860B'; // Oro oscuro
+                ctx.fillRect(-this.width/2, 0, this.width, this.height/2);
+                ctx.strokeStyle = '#DAA520'; ctx.lineWidth = 1;
+                ctx.strokeRect(-this.width/2, 0, this.width, this.height/2);
+                
+                // Detalles de la etapa de descenso
+                ctx.fillStyle = '#333';
+                ctx.fillRect(-this.width/4, 2, this.width/2, this.height/3);
+
+                // 2. Etapa de Ascenso (Gris/Plata)
+                ctx.fillStyle = '#ddd';
+                ctx.beginPath();
+                ctx.moveTo(-this.width/2 + 4, 0);
+                ctx.lineTo(-this.width/3, -this.height/2);
+                ctx.lineTo(this.width/3, -this.height/2);
+                ctx.lineTo(this.width/2 - 4, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+
+                // Ventanas
+                ctx.fillStyle = '#111';
+                ctx.beginPath(); ctx.arc(-this.width/5, -this.height/4, 2.5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.width/5, -this.height/4, 2.5, 0, Math.PI * 2); ctx.fill();
+
+                // Antena superior
+                ctx.beginPath(); ctx.moveTo(0, -this.height/2); ctx.lineTo(0, -this.height/2 - 8);
+                ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1.5; ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, -this.height/2 - 8, 1.5, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+
+                // 3. Patas de Aterrizaje
+                ctx.strokeStyle = '#aaa'; ctx.lineWidth = 2;
+                
+                // Pata Izquierda
+                ctx.beginPath();
+                ctx.moveTo(-this.width/2, this.height/4); 
+                ctx.lineTo(-this.width/2 - 12, this.height/2 + 10);
+                ctx.stroke();
+                
+                // Pata Derecha
+                ctx.beginPath();
+                ctx.moveTo(this.width/2, this.height/4); 
+                ctx.lineTo(this.width/2 + 12, this.height/2 + 10);
+                ctx.stroke();
+
+                // Soportes secundarios
+                ctx.lineWidth = 1; ctx.strokeStyle = '#777';
+                ctx.beginPath(); ctx.moveTo(-this.width/4, this.height/2); ctx.lineTo(-this.width/2 - 12, this.height/2 + 10); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(this.width/4, this.height/2); ctx.lineTo(this.width/2 + 12, this.height/2 + 10); ctx.stroke();
+
+                // Pies (Platos)
+                ctx.fillStyle = '#DAA520';
+                ctx.beginPath(); ctx.ellipse(-this.width/2 - 12, this.height/2 + 10, 6, 2, 0, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(this.width/2 + 12, this.height/2 + 10, 6, 2, 0, 0, Math.PI*2); ctx.fill();
+
+                if (this.parachuteDeployed && ENVIRONMENTS[ui.envSelect.value].hasAtmosphere && !this.landed) {
+                    ctx.save(); ctx.rotate(-this.angle * 0.8); 
+                    ctx.beginPath(); ctx.moveTo(0, -this.height/2); ctx.lineTo(-30, -this.height - 40);
+                    ctx.moveTo(0, -this.height/2); ctx.lineTo(30, -this.height - 40);
+                    ctx.moveTo(0, -this.height/2); ctx.lineTo(0, -this.height - 45);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.beginPath(); ctx.arc(0, -this.height - 40, 35, Math.PI, 0); 
+                    ctx.fillStyle = 'rgba(255, 80, 20, 0.85)'; ctx.fill();
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+            detachParachute(envType) {
+                if (this.parachuteDeployed) {
+                    this.parachuteDeployed = false;
+                    this.detachedParachute = new DetachedParachute(this.x, this.y, this.angle, envType, getWaterLevel(this.x));
+                }
+            }
+        }
+
+        // --- CLASES DE ANIMACIÓN POST-VUELO ---
+        class Helicopter {
+            constructor(targetX, targetY) {
+                this.x = targetX > gameWidth / 2 ? -100 : gameWidth + 100;
+                this.y = 50;
+                this.targetX = targetX;
+                this.targetY = Math.max(40, targetY - 130); 
+                this.speed = 130;
+                this.hovering = false;
+                this.rotorAngle = 0;
+                this.deployTimer = 0;
+            }
+            update(dt) {
+                this.rotorAngle += dt * 30;
+                if (!this.hovering) {
+                    let dx = this.targetX - this.x;
+                    let dy = this.targetY - this.y;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist < 5) {
+                        this.hovering = true;
+                    } else {
+                        this.x += (dx / dist) * this.speed * dt;
+                        this.y += (dy / dist) * this.speed * dt;
+                    }
+                } else {
+                    this.deployTimer += dt;
+                    if (this.deployTimer > 1.5 && this.deployTimer < 1.6) {
+                        rescueSoldiers.push(new RescueSoldier(this.x, this.y, this.targetX));
+                        this.deployTimer = 2.0; 
+                    }
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#2d4c1e'; ctx.beginPath(); ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI * 2); ctx.fill(); // Cuerpo
+                ctx.fillRect(-45, -2, 25, 4); ctx.beginPath(); ctx.arc(-45, -5, 6, 0, Math.PI * 2); ctx.fill(); // Cola
+                ctx.save(); ctx.rotate(this.rotorAngle); // Hélice Principal
+                ctx.fillStyle = '#111'; ctx.fillRect(-35, -15, 70, 2); ctx.fillRect(-2, -15, 4, 15); ctx.restore();
+                ctx.save(); ctx.translate(-45, -5); ctx.rotate(this.rotorAngle * 1.5); // Hélice Cola
+                ctx.fillStyle = '#111'; ctx.fillRect(-8, -1, 16, 2); ctx.restore();
+                if (this.deployTimer > 1.5) { // Cuerda de rapel
+                    ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 150); ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        class RescueSoldier {
+            constructor(x, y, targetX) {
+                this.x = x; this.y = y; this.targetX = targetX + (Math.random() * 40 - 20);
+                this.landed = false;
+            }
+            update(dt) {
+                if (!this.landed) {
+                    this.y += 80 * dt;
+                    let ground = ui.envSelect.value === 'water' ? getWaterLevel(this.x) : getTerrainYAt(this.x);
+                    if (this.y >= ground - 10) { this.y = ground - 10; this.landed = true; }
+                } else {
+                    let dx = this.targetX - this.x;
+                    if (Math.abs(dx) > 15) this.x += Math.sign(dx) * 30 * dt;
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.strokeStyle = '#2d4c1e'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(0, -10, 3, 0, Math.PI * 2); ctx.stroke(); // Cabeza
+                ctx.moveTo(0, -7); ctx.lineTo(0, 0); // Cuerpo
+                if(!this.landed) { ctx.moveTo(0, -4); ctx.lineTo(-4, -8); ctx.moveTo(0, -4); ctx.lineTo(4, -8); } // Brazos rapel
+                else { ctx.moveTo(0, -4); ctx.lineTo(-3, 1); ctx.moveTo(0, -4); ctx.lineTo(3, 1); } // Brazos reposo
+                ctx.moveTo(0, 0); ctx.lineTo(-4, 5); ctx.moveTo(0, 0); ctx.lineTo(4, 5); // Piernas
+                ctx.stroke(); ctx.restore();
+            }
+        }
+
+        class Ambulance {
+            constructor(targetX) {
+                this.x = targetX > gameWidth / 2 ? -60 : gameWidth + 60;
+                this.y = gameHeight - 20; 
+                this.targetX = targetX;
+                this.speed = 110;
+                this.stopped = false;
+                this.lightsTimer = 0;
+                this.deployed = false;
+            }
+            update(dt) {
+                this.lightsTimer += dt;
+                if (!this.stopped) {
+                    let dx = this.targetX - this.x;
+                    if (Math.abs(dx) < 70) {
+                        this.stopped = true;
+                    } else {
+                        this.x += Math.sign(dx) * this.speed * dt;
+                    }
+                } else if (!this.deployed) {
+                    this.deployed = true;
+                    paramedics.push(new Paramedic(this.x, this.y, this.targetX - 25));
+                    paramedics.push(new Paramedic(this.x, this.y, this.targetX + 25));
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(-15, 0, 6, 0, Math.PI * 2); ctx.arc(15, 0, 6, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.fillRect(-25, -20, 50, 20); // Cabina
+                ctx.fillStyle = '#f00'; ctx.fillRect(-2, -15, 4, 10); ctx.fillRect(-5, -12, 10, 4); // Cruz roja
+                // Luces de emergencia
+                if (Math.floor(this.lightsTimer * 6) % 2 === 0) { ctx.fillStyle = '#f00'; ctx.fillRect(-20, -23, 6, 3); } 
+                else { ctx.fillStyle = '#00f'; ctx.fillRect(14, -23, 6, 3); }
+                ctx.restore();
+            }
+        }
+
+        class Paramedic {
+            constructor(x, y, targetX) {
+                this.x = x; this.y = y; this.targetX = targetX;
+                this.anim = 0;
+            }
+            update(dt) {
+                let dx = this.targetX - this.x;
+                if (Math.abs(dx) > 5) {
+                    this.x += Math.sign(dx) * 45 * dt;
+                    this.anim += dt * 12;
+                } else { this.anim = 0; }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(0, -10, 3, 0, Math.PI * 2); ctx.stroke(); // Cabeza
+                ctx.moveTo(0, -7); ctx.lineTo(0, 0); // Cuerpo
+                ctx.moveTo(0, -4); ctx.lineTo(-4, -1); ctx.moveTo(0, -4); ctx.lineTo(4, -1); // Brazos
+                ctx.fillStyle = '#f00'; ctx.fillRect(-3, -2, 6, 4); // Botiquín
+                let legOffset = Math.sin(this.anim) * 4;
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-2 + legOffset, 5); ctx.moveTo(0, 0); ctx.lineTo(2 - legOffset, 5); ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        class RescueBoat {
+            constructor(targetX) {
+                this.x = targetX > gameWidth / 2 ? -60 : gameWidth + 60;
+                this.targetX = targetX + (this.x < targetX ? -40 : 40); // Se detiene un poco antes
+                this.speed = 90;
+                this.stopped = false;
+                this.deployed = false;
+            }
+            update(dt) {
+                this.y = getWaterLevel(this.x);
+                if (!this.stopped) {
+                    let dx = this.targetX - this.x;
+                    if (Math.abs(dx) < 10) { this.stopped = true; } 
+                    else { this.x += Math.sign(dx) * this.speed * dt; }
+                } else if (!this.deployed) {
+                    this.deployed = true;
+                    divers.push(new Diver(this.x, this.y, this.targetX + (this.x < this.targetX ? 30 : -30)));
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#f22'; ctx.beginPath(); ctx.moveTo(-25, 0); ctx.lineTo(25, 0); ctx.lineTo(35, -10); ctx.lineTo(-25, -10); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.fillRect(-15, -18, 15, 8); // Cabina
+                ctx.restore();
+            }
+        }
+
+        class Diver {
+            constructor(x, y, targetX) {
+                this.x = x; this.y = y; this.targetX = targetX;
+            }
+            update(dt) {
+                this.y = getWaterLevel(this.x) + 5; // Nada sumergido ligeramente
+                let dx = this.targetX - this.x;
+                if (Math.abs(dx) > 5) { this.x += Math.sign(dx) * 35 * dt; }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0, -2, 3, 0, Math.PI * 2); ctx.fill(); // Cabeza/Buzo
+                ctx.fillRect(-6, -1, 12, 4); // Cuerpo nadando horizontal
+                ctx.fillStyle = '#0ff'; ctx.fillRect((this.targetX > this.x ? -8 : 6), 0, 4, 2); // Aletas
+                ctx.restore();
+            }
+        }
+
+        class MarsRover {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.startX = x;
+                this.dir = x > gameWidth / 2 ? -1 : 1;
+                this.anim = 0;
+            }
+            update(dt) {
+                this.y = getTerrainYAt(this.x) - 5;
+                if (Math.abs(this.x - this.startX) < 160) {
+                    this.x += this.dir * 25 * dt;
+                    this.anim += dt * 10;
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#ddd'; ctx.fillRect(-10, -8, 20, 8); // Chasis
+                ctx.fillStyle = '#222';
+                let roll = this.anim % (Math.PI * 2);
+                [-8, 0, 8].forEach(wx => { // 6 ruedas (3 visibles en 2D)
+                    ctx.save(); ctx.translate(wx, 2); ctx.rotate(roll * this.dir);
+                    ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.moveTo(-3, 0); ctx.lineTo(3, 0); ctx.stroke();
+                    ctx.restore();
+                });
+                ctx.fillStyle = '#888'; ctx.fillRect(4, -16, 2, 8); // Mástil cámara
+                ctx.fillStyle = '#111'; ctx.fillRect(2, -18, 6, 4); // Lente
+                ctx.restore();
+            }
+        }
+
+        class Astronaut {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.targetX = x + (x > gameWidth / 2 ? -45 : 45);
+                this.anim = 0;
+                this.planted = false;
+                this.photoTimer = 0;
+            }
+            update(dt) {
+                this.y = getTerrainYAt(this.x);
+                let dx = this.targetX - this.x;
+                if (Math.abs(dx) > 2) {
+                    this.x += Math.sign(dx) * 15 * dt;
+                    this.anim += dt * 6;
+                } else {
+                    this.planted = true;
+                    this.anim = 0;
+                    this.photoTimer += dt;
+                    if (this.photoTimer > 3.5) {
+                        photoFlashOpacity = 1.0; 
+                        this.photoTimer = 0;
+                    }
+                }
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, -14, 4, 0, Math.PI * 2); ctx.fill(); // Casco
+                ctx.fillStyle = '#daaa00'; ctx.beginPath(); ctx.arc(1, -14.5, 2.5, 0, Math.PI * 2); ctx.fill(); // Visera dorada
+                ctx.fillStyle = '#fff'; ctx.fillRect(-4, -10, 8, 10); // Traje
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; // Brazos
+                ctx.beginPath(); ctx.moveTo(-4, -8); ctx.lineTo(-7, -2); ctx.stroke();
+                if (this.planted) { ctx.beginPath(); ctx.moveTo(4, -8); ctx.lineTo(10, -12); ctx.stroke(); } // Posando
+                else { ctx.beginPath(); ctx.moveTo(4, -8); ctx.lineTo(7, -2); ctx.stroke(); }
+                let legOffset = Math.sin(this.anim) * 3; // Piernas
+                ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(-2 + legOffset, 5); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(2, 0); ctx.lineTo(2 - legOffset, 5); ctx.stroke();
+
+                if (this.planted) { // Bandera
+                    ctx.fillStyle = '#ccc'; ctx.fillRect(-15, -25, 2, 25);
+                    ctx.fillStyle = '#fff'; ctx.fillRect(-13, -25, 12, 8);
+                    ctx.fillStyle = '#f00'; ctx.fillRect(-13, -25, 12, 2); ctx.fillRect(-13, -21, 12, 2);
+                    ctx.fillStyle = '#00f'; ctx.fillRect(-13, -25, 5, 4);
+                }
+                ctx.restore();
+            }
+        }
+
+        function triggerPostGameAnimations(success) {
+            if (animationTriggered) return;
+            animationTriggered = true;
+            
+            const env = ui.envSelect.value;
+            const targetX = lander.x;
+            const targetY = lander.y;
+
+            if (env === 'mars' && success) {
+                marsRovers.push(new MarsRover(targetX, targetY + lander.height/2));
+            } else if (env === 'moon' && success) {
+                astronauts.push(new Astronaut(targetX, targetY + lander.height/2));
+            } else if (env === 'earth') {
+                activeHelicopters.push(new Helicopter(targetX, targetY));
+                activeAmbulances.push(new Ambulance(targetX));
+            } else if (env === 'water') {
+                activeHelicopters.push(new Helicopter(targetX, targetY));
+                activeBoats.push(new RescueBoat(targetX));
+            }
+        }
+
         function checkCollisions() {
             if (lander.crashed || lander.landed) return;
             
-            const envKey = ui.envSelect.value;
-            const env = ENVIRONMENTS[envKey];
-            const bottomY = lander.y + lander.height/2 + 5;
-            const vSpeed = Math.abs(lander.vy);
-            const hSpeed = Math.abs(lander.vx);
+            const env = ENVIRONMENTS[ui.envSelect.value];
+            const bottomY = lander.y + lander.height/2 + 10;
+            const vSpeed = Math.abs(lander.vy); const hSpeed = Math.abs(lander.vx);
             const angleDeg = Math.abs(lander.angle * 180 / Math.PI);
 
             if (env.type === 'solid') {
                 const terrainY = getTerrainYAt(lander.x);
-                
                 if (bottomY >= terrainY) {
                     const onPad = (lander.x > landingPad.x && lander.x < landingPad.x + landingPad.width);
 
                     if (onPad && vSpeed <= MAX_LANDING_VSPEED && hSpeed <= MAX_LANDING_HSPEED && angleDeg <= MAX_LANDING_ANGLE) {
                         lander.landed = true;
                         lander.vy = 0; lander.vx = 0; lander.angularVelocity = 0; lander.angle = 0;
-                        lander.y = terrainY - lander.height/2 - 5;
-                        const isChute = lander.parachuteDeployed;
+                        lander.y = terrainY - lander.height/2 - 10;
                         lander.detachParachute('solid');
-                        triggerSuccessAnimation();
-                        
-                        // --- ANALIZAR LOGROS DE ATERRIZAJE TERRESTRE/LUNAR/MARTE ---
-                        handleLandingAchievements(envKey, isChute);
-                        
                         endGame(true, vSpeed, hSpeed, angleDeg, "Aterrizaje perfecto en la plataforma.");
                     } else {
-                        lander.crashed = true;
-                        lander.parachuteDeployed = false; 
+                        lander.crashed = true; lander.parachuteDeployed = false; 
                         createExplosion(lander.x, lander.y);
-                        
-                        // Logro 8: Estrellar nave
-                        unlockAchievement('ship_crashed');
-
                         let reason = "Fuera de plataforma de aterrizaje.";
                         if (onPad) {
                             if (vSpeed > MAX_LANDING_VSPEED) reason = `Impacto vertical excesivo (${vSpeed.toFixed(1)} m/s).`;
@@ -1794,129 +1334,58 @@
                 }
             } else if (env.type === 'liquid') {
                 const waterY = getWaterLevel(lander.x);
-                
                 if (bottomY >= waterY && !lander.inWaterWasDetected) {
                     lander.inWaterWasDetected = true; 
-                    
                     if (vSpeed > MAX_LANDING_VSPEED * 2.5 || hSpeed > MAX_LANDING_HSPEED * 2.5 || angleDeg > MAX_LANDING_ANGLE * 3) {
-                        lander.crashed = true;
-                        lander.parachuteDeployed = false;
-                        createExplosion(lander.x, waterY);
-                        createSplash(lander.x, waterY);
-                        
-                        // Logro 8: Estrellar nave
-                        unlockAchievement('ship_crashed');
-                        
+                        lander.crashed = true; lander.parachuteDeployed = false;
+                        createExplosion(lander.x, waterY); createSplash(lander.x, waterY);
                         endGame(false, vSpeed, hSpeed, angleDeg, "Impacto violento contra el océano.");
                         return;
-                    } else {
-                        createSplash(lander.x, waterY);
-                    }
+                    } else { createSplash(lander.x, waterY); }
                 }
-
                 if (lander.inWater && vSpeed < 0.25 && hSpeed < 0.25) {
-                    lander.landed = true;
-                    const isChute = lander.parachuteDeployed;
-                    lander.detachParachute('liquid');
-                    triggerSuccessAnimation();
-
-                    // --- ANALIZAR LOGROS DE ACUATIZAJE ---
-                    handleLandingAchievements(envKey, isChute);
-
+                    lander.landed = true; lander.detachParachute('liquid');
                     endGame(true, vSpeed, hSpeed, angleDeg, "Acuatizaje exitoso. Cápsula estabilizada flotando.");
                 }
             }
         }
 
-        // --- STREAMING_CHUNK: Procesando la lógica e interruptores para desbloquear los logros específicos ---
-        function handleLandingAchievements(envKey, isChute) {
-            // Verificar potencia mínima al aterrizar (Logro 13: Pluma en el Vacío)
-            // Se considera potencia baja si la barra está configurada al mínimo valor absoluto de 2000 Newtons
-            const currentThrustSetting = parseFloat(ui.thrustRange.value);
-            if (currentThrustSetting <= 2000) {
-                unlockAchievement('low_power_landing');
-            }
-
-            if (envKey === 'moon') {
-                // Logro 1: Luna
-                unlockAchievement('landing_moon');
-                trackCompletedScene('moon');
-            } else if (envKey === 'mars') {
-                // Logro 2: Marte
-                unlockAchievement('landing_mars');
-                trackCompletedScene('mars');
-            } else if (envKey === 'earth') {
-                if (!isChute) {
-                    // Logro 3: Tierra sin paracaídas
-                    unlockAchievement('landing_earth_no_chute');
-                } else {
-                    // Logro 4: Tierra con paracaídas
-                    unlockAchievement('landing_earth_chute');
-                }
-                trackCompletedScene('earth');
-            } else if (envKey === 'water') {
-                if (!isChute) {
-                    // Logro 5: Océano sin paracaídas
-                    unlockAchievement('landing_ocean_no_chute');
-                } else {
-                    // Logro 6: Océano con paracaídas
-                    unlockAchievement('landing_ocean_chute');
-                }
-                trackCompletedScene('water');
-            }
-        }
-
-        function trackCompletedScene(sceneKey) {
-            try {
-                let list = JSON.parse(localStorage.getItem('completed_scenes') || "[]");
-                if (!list.includes(sceneKey)) {
-                    list.push(sceneKey);
-                    localStorage.setItem('completed_scenes', JSON.stringify(list));
-                }
-                // Logro 11: Completar todos los escenarios exitosamente (Luna, Marte, Tierra, Océano)
-                if (list.length >= 4) {
-                    unlockAchievement('all_scenes_complete');
-                }
-            } catch(e) {}
-        }
-
-        function triggerSuccessAnimation() {
-            if (animationTriggered) return;
-            animationTriggered = true;
-
+        function evaluateEndGameAchievements(success, vSpeed, hSpeed, angleDeg) {
             const envKey = ui.envSelect.value;
-            if (envKey === 'water') {
-                activeBoats.push(new RescueBoat('left', lander.x));
-                activeBoats.push(new RescueBoat('right', lander.x));
-                activeHelicopters.push(new RescueHelicopter('right', lander.x, lander.y));
-            } else if (envKey === 'earth') {
-                activeAmbulances.push(new RescueAmbulance('left', lander.x, getTerrainYAt(lander.x)));
-                activeHelicopters.push(new RescueHelicopter('left', lander.x, lander.y));
-            } else if (envKey === 'moon') {
-                moonAstronaut = new MoonAstronaut(lander.x, lander.y);
-            } else if (envKey === 'mars') {
-                marsRover = new MarsRover(lander.x, lander.y);
+            if (success) {
+                gameStats.successful++;
+                
+                // Evaluaciones Específicas
+                if (envKey === 'moon') unlockAchievement('landing_moon');
+                if (envKey === 'mars') unlockAchievement('landing_mars');
+                if (envKey === 'earth' && !lander.detachedParachute && !lander.parachuteDeployed) unlockAchievement('landing_earth_no_chute');
+                if (envKey === 'water' && (lander.detachedParachute || lander.parachuteDeployed)) unlockAchievement('landing_water_chute');
+                
+                const fuelPercent = (lander.fuelMass / 500) * 100;
+                if (fuelPercent > 50) unlockAchievement('fuel_saver_50');
+                if (fuelPercent > 0 && fuelPercent < 10) unlockAchievement('fuel_saver_10');
+                
+                if (vSpeed < 0.2 && hSpeed < 0.2) unlockAchievement('perfect_landing');
+                if (maxSpeedReachedThisFlight > 15) unlockAchievement('reentry_survivor');
+                if (vSpeed >= 2.5 && vSpeed <= MAX_LANDING_VSPEED) unlockAchievement('heavy_impact');
+                if (angleDeg > 5 && angleDeg <= MAX_LANDING_ANGLE) unlockAchievement('angled_landing');
+
+                if (gameStats.successful >= 5) unlockAchievement('frequent_flyer');
+                if (gameStats.successful >= 10) unlockAchievement('master_pilot');
+            } else {
+                gameStats.crashes++;
+                if (gameStats.crashes >= 3) unlockAchievement('crasher');
             }
+            localStorage.setItem('landerStats', JSON.stringify(gameStats));
         }
 
         function endGame(success, vSpeed, hSpeed, angleDeg, message) {
-            gameOver = true;
-            attemptNumber++;
+            gameOver = true; attemptNumber++;
             const fuelRemaining = (lander.fuelMass).toFixed(1);
             
-            flightHistory.push({
-                attempt: attemptNumber,
-                vx: hSpeed.toFixed(2),
-                vy: vSpeed.toFixed(2),
-                angle: angleDeg.toFixed(1) + '°',
-                fuel: fuelRemaining,
-                result: success ? '✅ Éxito' : '💥 Choque'
-            });
+            flightHistory.push({ attempt: attemptNumber, vx: hSpeed.toFixed(2), vy: vSpeed.toFixed(2), angle: angleDeg.toFixed(1) + '°', fuel: fuelRemaining, result: success ? '✅ Éxito' : '💥 Choque' });
 
-            // Guardar historial
-            try {
-                localStorage.setItem('lander_flight_history', JSON.stringify(flightHistory));
-            } catch(e){}
+            evaluateEndGameAchievements(success, vSpeed, hSpeed, angleDeg);
 
             ui.messageTitle.textContent = success ? (ENVIRONMENTS[ui.envSelect.value].type === 'liquid' ? "¡ACUATIZAJE SEGURO!" : "¡ATERRIZAJE SEGURO!") : "¡NAVE DESTRUIDA!";
             ui.messageTitle.style.color = success ? "#0F0" : "#F00";
@@ -1925,56 +1394,111 @@
             ui.historyBody.innerHTML = "";
             flightHistory.forEach(f => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${f.attempt}</td>
-                    <td>${f.vx}</td>
-                    <td>${f.vy}</td>
-                    <td>${f.angle}</td>
-                    <td>${f.fuel}</td>
-                    <td style="color: ${f.result.includes('Éxito') ? '#0F0' : '#F00'}">${f.result}</td>
-                `;
+                tr.innerHTML = `<td>${f.attempt}</td><td>${f.vx}</td><td>${f.vy}</td><td>${f.angle}</td><td>${f.fuel}</td><td style="color: ${f.result.includes('Éxito') ? '#0F0' : '#F00'}">${f.result}</td>`;
                 ui.historyBody.appendChild(tr);
             });
 
-            // Actualizar resumen de logros en el popup emergente
-            updateAchievementsUI();
-
-            setTimeout(() => { ui.messageBox.style.display = 'block'; }, success ? 3500 : 1200);
+            // Disparar las animaciones post-vuelo antes de mostrar el popup
+            setTimeout(() => { triggerPostGameAnimations(success); }, 1000);
+            setTimeout(() => { ui.messageBox.style.display = 'block'; }, success ? 3500 : 1800);
         }
 
-        // --- STREAMING_CHUNK: Actualizando telemetría y cálculos energéticos de la nave ---
+        function generateTerrain() {
+            terrain = [];
+            const roughness = 0.4; let y = gameHeight * 0.7;
+            const segmentCount = 60; const segmentWidth = gameWidth / segmentCount;
+            const padIndex = Math.floor(Math.random() * (segmentCount - 15)) + 5; 
+            
+            terrain.push({ x: 0, y: y });
+            for (let i = 1; i <= segmentCount; i++) {
+                if (i >= padIndex && i <= padIndex + 6) { 
+                    if (i === padIndex) { landingPad.x = terrain[terrain.length - 1].x; landingPad.y = y; landingPad.width = segmentWidth * 6; }
+                    terrain.push({ x: i * segmentWidth, y: y });
+                } else {
+                    y += (Math.random() - 0.5) * segmentWidth * roughness * 3;
+                    if (y > gameHeight - 30) y = gameHeight - 30;
+                    if (y < gameHeight / 2 + 50) y = gameHeight / 2 + 50;
+                    terrain.push({ x: i * segmentWidth, y: y });
+                }
+            }
+        }
+
+        function drawScene() {
+            ctx.clearRect(0, 0, gameWidth, gameHeight);
+            const envKey = ui.envSelect.value; const env = ENVIRONMENTS[envKey];
+
+            if (envKey === 'earth' || envKey === 'water') {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
+                skyGrad.addColorStop(0, '#102e5c'); skyGrad.addColorStop(0.5, '#2b78e4'); skyGrad.addColorStop(1, '#87CEEB'); 
+                ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, gameWidth, gameHeight);
+            } else if (envKey === 'mars') {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
+                skyGrad.addColorStop(0, '#541c04'); skyGrad.addColorStop(0.7, '#c1440e'); skyGrad.addColorStop(1, '#e27b4b'); 
+                ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, gameWidth, gameHeight);
+            } else {
+                ctx.fillStyle = '#050512'; ctx.fillRect(0, 0, gameWidth, gameHeight); ctx.fillStyle = '#ffffff';
+                for(let i=0; i<80; i++) { ctx.fillRect((Math.sin(i * 456) * 0.5 + 0.5) * gameWidth, (Math.cos(i * 123) * 0.5 + 0.5) * gameHeight, 1.5, 1.5); }
+            }
+
+            if (env.type === 'solid') {
+                ctx.beginPath(); ctx.moveTo(terrain[0].x, terrain[0].y);
+                for (let i = 1; i < terrain.length; i++) ctx.lineTo(terrain[i].x, terrain[i].y);
+                ctx.lineTo(gameWidth, gameHeight); ctx.lineTo(0, gameHeight); ctx.closePath();
+                
+                const gradient = ctx.createLinearGradient(0, gameHeight*0.5, 0, gameHeight);
+                if (envKey === 'moon') { gradient.addColorStop(0, '#333'); gradient.addColorStop(1, '#111'); }
+                else if (envKey === 'mars') { gradient.addColorStop(0, '#9e3f19'); gradient.addColorStop(1, '#5e1e07'); }
+                else { gradient.addColorStop(0, '#2e5a1c'); gradient.addColorStop(1, '#1a330f'); }
+                
+                ctx.fillStyle = gradient; ctx.fill();
+                ctx.strokeStyle = envKey === 'moon' ? '#555' : (envKey === 'mars' ? '#c75626' : '#3e7a26');
+                ctx.lineWidth = 2; ctx.stroke();
+
+                ctx.fillStyle = '#888'; ctx.fillRect(landingPad.x, landingPad.y - 2, landingPad.width, 4);
+                ctx.fillStyle = '#ffcc00'; for (let i = 0; i < landingPad.width; i += 15) ctx.fillRect(landingPad.x + i, landingPad.y - 2, 8, 4);
+            } else if (env.type === 'liquid') {
+                ctx.beginPath(); ctx.moveTo(0, gameHeight);
+                for (let x = 0; x <= gameWidth; x += 20) ctx.lineTo(x, getWaterLevel(x));
+                ctx.lineTo(gameWidth, gameHeight); ctx.closePath();
+                const gradient = ctx.createLinearGradient(0, gameHeight*0.6, 0, gameHeight);
+                gradient.addColorStop(0, 'rgba(0, 80, 150, 0.8)'); gradient.addColorStop(1, 'rgba(0, 20, 60, 0.95)');
+                ctx.fillStyle = gradient; ctx.fill();
+            }
+
+            lander.draw();
+            particles.forEach(p => p.draw());
+
+            // Dibujar entidades de animación
+            activeHelicopters.forEach(h => h.draw());
+            rescueSoldiers.forEach(s => s.draw());
+            activeAmbulances.forEach(a => a.draw());
+            paramedics.forEach(p => p.draw());
+            activeBoats.forEach(b => b.draw());
+            divers.forEach(d => d.draw());
+            astronauts.forEach(a => a.draw());
+            marsRovers.forEach(m => m.draw());
+
+            // Dibujar el destello de la fotografía
+            if (photoFlashOpacity > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${photoFlashOpacity})`;
+                ctx.fillRect(0, 0, gameWidth, gameHeight);
+            }
+        }
+
         function updateTelemetry() {
             if(!lander) return;
             const env = ENVIRONMENTS[ui.envSelect.value];
-            
-            let superficieAbajo;
-            if (env.type === 'solid') {
-                superficieAbajo = getTerrainYAt(lander.x);
-            } else {
-                superficieAbajo = getWaterLevel(lander.x);
-            }
-            
-            let altitudReal = (superficieAbajo - (lander.y + lander.height/2 + 5)) / PIXELS_PER_METER;
-            if (altitudReal < 0 && env.type === 'solid') altitudReal = 0; 
+            let altitudReal = getRealAltitude(lander.x, lander.y + lander.height/2 + 10);
 
-            // Para simular la altitud infinita al salir volando hacia arriba
-            let displayAltitude = altitudReal;
-            if (lander.y < 0) {
-                displayAltitude = altitudReal + (Math.pow(Math.abs(lander.y), 1.6));
-            }
-
-            ui.altitude.textContent = displayAltitude.toFixed(0);
-            ui.hSpeed.textContent = (lander.vx * 35).toFixed(1); // Escalado estético para simular realismo en metros/segundo
-            ui.vSpeed.textContent = (lander.vy * 35).toFixed(1); 
-            
-            const angleDeg = (lander.angle * 180 / Math.PI) % 360;
-            ui.angle.textContent = angleDeg.toFixed(1);
-
+            ui.altitude.textContent = altitudReal.toFixed(1);
+            ui.hSpeed.textContent = (lander.vx).toFixed(2);
+            ui.vSpeed.textContent = (lander.vy).toFixed(2); 
+            ui.angle.textContent = ((lander.angle * 180 / Math.PI) % 360).toFixed(1);
             ui.mass.textContent = (lander.totalMass).toFixed(0);
             
             const velocitySquared = (lander.vx * lander.vx) + (lander.vy * lander.vy);
             const kineticEnergy = 0.5 * lander.totalMass * velocitySquared;
-            const potentialEnergy = lander.totalMass * env.gravity * Math.max(0, displayAltitude);
+            const potentialEnergy = lander.totalMass * env.gravity * altitudReal;
             const mechanicEnergy = kineticEnergy + potentialEnergy;
 
             ui.kinEnergy.textContent = (kineticEnergy / 1000).toFixed(1);
@@ -1983,230 +1507,94 @@
 
             const fuelPercent = (lander.fuelMass / 500) * 100;
             ui.fuelBar.style.width = `${fuelPercent}%`;
-            if (fuelPercent < 20) ui.fuelBar.style.backgroundColor = '#F00';
-            else if (fuelPercent < 50) ui.fuelBar.style.backgroundColor = '#FF0';
-            else ui.fuelBar.style.backgroundColor = '#0F0';
+            ui.fuelBar.style.backgroundColor = fuelPercent < 20 ? '#F00' : (fuelPercent < 50 ? '#FF0' : '#0F0');
             
-            if (lander.parachuteDeployed) {
-                ui.parachuteStatus.textContent = "DESPLEGADO";
-                ui.parachuteStatus.style.color = "#FF5500";
-            } else if (lander.detachedParachute) {
-                ui.parachuteStatus.textContent = "Separado";
-                ui.parachuteStatus.style.color = "#888";
-            } else {
-                ui.parachuteStatus.textContent = env.hasAtmosphere ? "Guardado" : "N/A (Sin Atm.)";
-                ui.parachuteStatus.style.color = "#aaa";
-            }
+            if (lander.parachuteDeployed) { ui.parachuteStatus.textContent = "DESPLEGADO"; ui.parachuteStatus.style.color = "#FF5500"; }
+            else if (lander.detachedParachute) { ui.parachuteStatus.textContent = "Separado"; ui.parachuteStatus.style.color = "#888"; }
+            else { ui.parachuteStatus.textContent = env.hasAtmosphere ? "Guardado" : "N/A (Sin Atm.)"; ui.parachuteStatus.style.color = "#aaa"; }
         }
 
-        // --- STREAMING_CHUNK: Dibujando la escena y decorando el entorno gráfico ---
-        function drawScene() {
-            ctx.clearRect(0, 0, gameWidth, gameHeight);
-            const envKey = ui.envSelect.value;
-            const env = ENVIRONMENTS[envKey];
-
-            if (envKey === 'earth' || envKey === 'water') {
-                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
-                skyGrad.addColorStop(0, '#06162d'); 
-                skyGrad.addColorStop(0.5, '#1e5bb4'); 
-                skyGrad.addColorStop(1, '#87CEEB'); 
-                ctx.fillStyle = skyGrad;
-                ctx.fillRect(0, 0, gameWidth, gameHeight);
-            } else if (envKey === 'mars') {
-                const skyGrad = ctx.createLinearGradient(0, 0, 0, gameHeight);
-                skyGrad.addColorStop(0, '#541c04'); 
-                skyGrad.addColorStop(0.7, '#c1440e'); 
-                skyGrad.addColorStop(1, '#e27b4b'); 
-                ctx.fillStyle = skyGrad;
-                ctx.fillRect(0, 0, gameWidth, gameHeight);
-            } else {
-                ctx.fillStyle = '#050512';
-                ctx.fillRect(0, 0, gameWidth, gameHeight);
-                ctx.fillStyle = '#ffffff';
-                for(let i=0; i<80; i++) {
-                    let sx = (Math.sin(i * 456) * 0.5 + 0.5) * gameWidth;
-                    let sy = (Math.cos(i * 123) * 0.5 + 0.5) * gameHeight;
-                    ctx.fillRect(sx, sy, 1.5, 1.5);
-                }
-            }
-
-            if (env.type === 'solid') {
-                ctx.beginPath();
-                ctx.moveTo(terrain[0].x, terrain[0].y);
-                for (let i = 1; i < terrain.length; i++) ctx.lineTo(terrain[i].x, terrain[i].y);
-                ctx.lineTo(gameWidth, gameHeight);
-                ctx.lineTo(0, gameHeight);
-                ctx.closePath();
-                
-                const gradient = ctx.createLinearGradient(0, gameHeight*0.7, 0, gameHeight);
-                if (envKey === 'earth') {
-                    gradient.addColorStop(0, '#3e9c31'); 
-                    gradient.addColorStop(1, '#13350c');
-                    ctx.strokeStyle = '#55c945'; 
-                } else if (envKey === 'mars') {
-                    gradient.addColorStop(0, '#a63c11'); 
-                    gradient.addColorStop(1, '#3b1404');
-                    ctx.strokeStyle = '#d1531f';
-                } else {
-                    gradient.addColorStop(0, '#444'); 
-                    gradient.addColorStop(1, '#111');
-                    ctx.strokeStyle = '#888';
-                }
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.fillStyle = envKey === 'earth' ? '#555' : '#0F0';
-                ctx.fillRect(landingPad.x, landingPad.y, landingPad.width, 6);
-                ctx.strokeStyle = envKey === 'earth' ? '#fff' : '#000';
-                ctx.lineWidth = 1.5;
-                ctx.beginPath();
-                for(let i=0; i<landingPad.width; i+=10) {
-                    ctx.moveTo(landingPad.x + i, landingPad.y);
-                    ctx.lineTo(landingPad.x + i + 5, landingPad.y + 6);
-                }
-                ctx.stroke();
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(0, gameHeight);
-                for (let x = 0; x <= gameWidth; x += 8) {
-                    ctx.lineTo(x, getWaterLevel(x));
-                }
-                ctx.lineTo(gameWidth, gameHeight);
-                ctx.closePath();
-                
-                const waterGrad = ctx.createLinearGradient(0, gameHeight * 0.7, 0, gameHeight);
-                waterGrad.addColorStop(0, 'rgba(25, 115, 220, 0.9)'); 
-                waterGrad.addColorStop(1, 'rgba(0, 0, 80, 0.98)');    
-                
-                ctx.fillStyle = waterGrad;
-                ctx.fill();
-                
-                ctx.beginPath();
-                for (let x = 0; x <= gameWidth; x += 12) {
-                    ctx.lineTo(x, getWaterLevel(x));
-                }
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-
-            activeBoats.forEach(boat => boat.draw());
-            activeAmbulances.forEach(amb => amb.draw());
-            rescueSoldiers.forEach(soldier => soldier.draw());
-            activeHelicopters.forEach(cop => cop.draw());
-            if (moonAstronaut) moonAstronaut.draw();
-            if (marsRover) marsRover.draw();
-
-            if (lander) lander.draw();
-            
-            particles.forEach(p => p.draw());
-        }
-
-        // --- STREAMING_CHUNK: Iniciando el ciclo de juego y lógica de actualizaciones continuas ---
         function gameLoop(currentTime) {
-            let dt = (currentTime - previousTime) / 1000;
-            previousTime = currentTime;
-            if (dt > 0.1) dt = 0.1;
-            
-            globalTime += dt;
+            const dt = Math.min((currentTime - previousTime) / 1000, 0.1); 
+            previousTime = currentTime; globalTime += dt;
 
-            if (lander && lander.parachuteDeployed) {
-                const env = ENVIRONMENTS[ui.envSelect.value];
-                if (!env.hasAtmosphere) lander.parachuteDeployed = false;
-            }
-
-            if (!gameOver && lander) {
-                lander.update(dt);
-                checkCollisions();
-            } else if (gameOver && lander) {
-                if (lander.landed && lander.inWater) {
-                    lander.update(dt);
-                }
-            }
-            
-            activeHelicopters.forEach(cop => cop.update(dt));
-            activeAmbulances.forEach(amb => amb.update(dt));
-            activeBoats.forEach(boat => boat.update(dt));
-            rescueSoldiers.forEach(soldier => soldier.update(dt));
-            if (moonAstronaut) moonAstronaut.update(dt);
-            if (marsRover) marsRover.update(dt);
-
-            const currentGravity = ENVIRONMENTS[ui.envSelect.value].gravity;
+            lander.update(dt); checkCollisions();
+            const envGravity = ENVIRONMENTS[ui.envSelect.value].gravity;
             for (let i = particles.length - 1; i >= 0; i--) {
-                particles[i].update(dt, currentGravity);
+                particles[i].update(dt, envGravity);
                 if (particles[i].life <= 0) particles.splice(i, 1);
             }
 
-            drawScene();
-            updateTelemetry();
+            // Actualizar entidades de animación
+            activeHelicopters.forEach(h => h.update(dt));
+            rescueSoldiers.forEach(s => s.update(dt));
+            activeAmbulances.forEach(a => a.update(dt));
+            paramedics.forEach(p => p.update(dt));
+            activeBoats.forEach(b => b.update(dt));
+            divers.forEach(d => d.update(dt));
+            astronauts.forEach(a => a.update(dt));
+            marsRovers.forEach(m => m.update(dt));
             
+            if (photoFlashOpacity > 0) photoFlashOpacity -= dt * 1.5; // Disminuir el destello rápido
+
+            drawScene(); updateTelemetry();
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
-        function reset() {
-            if (animationFrameId) cancelAnimationFrame(animationFrameId);
-            gameWidth = window.innerWidth;
-            gameHeight = window.innerHeight;
-            canvas.width = gameWidth;
-            canvas.height = gameHeight;
-
-            generateTerrain();
-            lander = new Lander(100, 100);
-            particles = [];
-            gameOver = false;
-            ui.messageBox.style.display = 'none';
-            keys = {};
-
-            activeHelicopters = [];
-            activeAmbulances = [];
-            activeBoats = [];
-            rescueSoldiers = [];
-            moonAstronaut = null;
-            marsRover = null;
-            animationTriggered = false;
-            
-            previousTime = performance.now();
-            gameLoop(previousTime);
+        function resize() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            gameWidth = canvas.width; gameHeight = canvas.height;
+            if (!lander) reset();
+            else if (terrain.length === 0) generateTerrain(); 
         }
 
-        // --- STREAMING_CHUNK: Añadiendo los oyentes de teclado y gestos táctiles ---
-        window.addEventListener('keydown', (e) => {
+        function reset() {
+            cancelAnimationFrame(animationFrameId);
+            ui.messageBox.style.display = 'none';
             tryStartMusic();
-            if (e.key === 'p' || e.key === 'P') {
+            gameWidth = canvas.width; gameHeight = canvas.height;
+            const startY = ui.envSelect.value === 'water' ? 100 : 50;
+            lander = new Lander(gameWidth / 2, startY);
+            
+            maxSpeedReachedThisFlight = 0;
+            particles = []; gameOver = false;
+            
+            // Reiniciar entidades de animación
+            activeHelicopters = []; activeAmbulances = []; activeBoats = [];
+            rescueSoldiers = []; paramedics = []; divers = [];
+            astronauts = []; marsRovers = []; photoFlashOpacity = 0;
+            animationTriggered = false;
+
+            generateTerrain();
+            previousTime = performance.now();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('keydown', (e) => {
+            keys[e.code] = true; tryStartMusic();
+            
+            if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') reset();
+            else if (e.code === 'KeyP' && !gameOver && !lander.crashed) {
                 const env = ENVIRONMENTS[ui.envSelect.value];
-                if (env.hasAtmosphere && lander && !lander.crashed && !lander.landed) {
-                    // Logro 15: Momento de inercia inaudito con el paracaídas
-                    // Si el paracaídas se despliega cayendo a muy alta velocidad (ej. vy superior a 15 m/s)
-                    if (lander.vy > 10) {
-                        unlockAchievement('whip_parachute');
-                    }
+                if (env.hasAtmosphere && !lander.parachuteDeployed && !lander.detachedParachute) {
                     lander.parachuteDeployed = true;
+                    let alt = getRealAltitude(lander.x, lander.y + lander.height/2 + 10);
+                    if (alt > 50) unlockAchievement('high_altitude_chute');
+                    if (alt < 10) unlockAchievement('low_altitude_chute');
                 }
-            } else if (e.key === 'r' || e.key === 'R') {
-                reset();
-            } else {
-                keys[e.key] = true;
-            }
+            } else if (e.code === 'KeyL') toggleAchievementsMenu();
+            else if (e.code === 'Escape' && ui.achievementsPanel.style.display === 'flex') toggleAchievementsMenu();
         });
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
 
-        window.addEventListener('keyup', (e) => keys[e.key] = false);
-        window.addEventListener('mousedown', () => { tryStartMusic(); });
-        window.addEventListener('resize', () => { if (!gameOver) reset(); });
+        ui.envSelect.addEventListener('change', () => { reset(); ui.messageBox.style.display = 'none'; });
+        canvas.addEventListener('click', tryStartMusic);
 
-        // Cargar historial si existe
-        try {
-            const hist = localStorage.getItem('lander_flight_history');
-            if (hist) {
-                flightHistory = JSON.parse(hist);
-                attemptNumber = flightHistory.length;
-            }
-        } catch(e){}
-
-        // Inicializar los logros al arrancar
-        loadAchievements();
-        reset();
+        // Iniciar
+        initMusicPlayer();
+        initAchievementsUI();
+        resize();
     </script>
 </body>
 </html>
